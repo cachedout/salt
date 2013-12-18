@@ -31,7 +31,7 @@ STUB_SIMPLE_CRON_DICT = {'pre': ['5 0 * * * /tmp/pre_script.sh'], 'crons': [
 __grains__ = {}
 
 
-class PsTestCase(TestCase):
+class CronTestCase(TestCase):
     def test__needs_change(self):
         self.assertTrue(cron._needs_change(True, False))
 
