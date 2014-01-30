@@ -64,7 +64,7 @@ class PsTestCase(TestCase):
     @patch('psutil.Process')
     def test_kill_pid(self, send_signal_mock):
         ps.kill_pid(0, signal=999)
-        self.assertEqual(send_signal_mock.call_args, call(0))
+        send_signal_mock.assert_called_with(0)
 
     @patch('psutil.Process.send_signal')
     @patch('psutil.process_iter', new=MagicMock(return_value=[MOCK_PROC]))
