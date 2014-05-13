@@ -1446,6 +1446,15 @@ def build(path=None,
     status = base_status.copy()
     if path or fileobj:
         try:
+            if path.endswith('Dockerfile'):
+                log.error('You passed in a path that ends with \'Dockerfile\'. This is not correct.\n'
+                          'Specify only the directory and leave off the \'Dockerfile\' filename. '
+                          'i.e. /mypath/to/file/, not /mypath/to/file/Dockerfile.'
+                          )
+                return None
+        except AttributeError:
+            pass
+        try:
             ret = client.build(path=path,
                                tag=tag,
                                quiet=quiet,

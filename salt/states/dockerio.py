@@ -280,14 +280,24 @@ def built(name,
               timeout=timeout,
               )
     returned = build(**kw)
-    if previous_id != returned['id']:
-        changes = {name: {'old': previous_id,
-                          'new': returned['id']}}
+    comment = ''
+    if returned:
+        if previous_id != returned['id']:
+            changes = {name: {'old': previous_id,
+                              'new': returned['id']}}
+        else:
+            changes = {}
+        result = True
     else:
         changes = {}
+        exec_status = False
+        result = False
+        comment = 'Docker image failed to build. Check error log for possible reasons.'
     return _ret_status(exec_status=returned,
                        name=name,
-                       changes=changes)
+                       changes=changes,
+                       result=result,
+                       comment=comment)
 
 
 def installed(name,
@@ -640,7 +650,7 @@ def running(name, container=None, port_bindings=None, binds=None,
             else:
                 return _invalid(
                     comment=('Container {!r}'
-                            ' cannot be started\n{!s}').format(container,
+                             ' cannot be started\n{!s}').format(container,
                                                                 started['out']))
         else:
             return _valid(
