@@ -49,6 +49,13 @@ class SaltTestsuiteParser(SaltCoverageTestingParser):
             action='store_true',
             help='Print some system information.'
         )
+        self.add_option(
+            '--profile',
+            default=False,
+            action='store_true',
+            help='Gather profiling information',
+            dest='profile'
+        )
 
         self.test_selection_group.add_option(
             '-m',

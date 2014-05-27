@@ -19,7 +19,7 @@ class TestModuleTest(integration.ModuleCase):
         '''
         test.ping
         '''
-        self.assertTrue(self.run_function('test.ping'))
+        self.assertTrue(self.run_function('test.ping', profile=True))
 
     def test_echo(self):
         '''

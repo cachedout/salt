@@ -18,6 +18,7 @@ import tempfile
 import subprocess
 import multiprocessing
 import json
+import cProfile
 from hashlib import md5
 from datetime import datetime, timedelta
 try:
@@ -66,6 +67,7 @@ import yaml
 # Gentoo Portage prefers ebuild tests are rooted in ${TMPDIR}
 SYS_TMP_DIR = os.environ.get('TMPDIR', tempfile.gettempdir())
 TMP = os.path.join(SYS_TMP_DIR, 'salt-tests-tmpdir')
+PROFILE = os.path.join(TMP, 'profile')
 FILES = os.path.join(INTEGRATION_TEST_DIR, 'files')
 PYEXEC = 'python{0}.{1}'.format(*sys.version_info)
 MOCKBIN = os.path.join(INTEGRATION_TEST_DIR, 'mockbin')
@@ -98,6 +100,12 @@ def run_tests(*test_cases, **kwargs):
                 default=False,
                 action='store_true',
                 help='Print some system information.'
+            )
+            self.add_option(
+                '--profile',
+                default=False,
+                action='store_true',
+                help='Gather profiling information.'
             )
             self.output_options_group.add_option(
                 '--no-colors',
@@ -229,6 +237,7 @@ class TestDaemon(object):
                     self.minion_opts['sock_dir'],
                     TMP_STATE_TREE,
                     TMP_PRODENV_STATE_TREE,
+                    PROFILE,
                     TMP,
                     ],
                    running_tests_user)
@@ -284,6 +293,8 @@ class TestDaemon(object):
 
         if self.parser.options.ssh:
             self.prep_ssh()
+        if self.parser.options.profile:
+            self.profile = True
 
         if self.parser.options.sysinfo:
             try:
@@ -612,7 +623,7 @@ class TestDaemon(object):
         if os.path.isdir(self.smaster_opts['root_dir']):
             shutil.rmtree(self.smaster_opts['root_dir'])
 
-        for dirname in (TMP, TMP_STATE_TREE, TMP_PRODENV_STATE_TREE):
+        for dirname in (TMP, TMP_STATE_TREE, TMP_PRODENV_STATE_TREE, PROFILE):
             if os.path.isdir(dirname):
                 shutil.rmtree(dirname)
 
@@ -877,8 +888,23 @@ class ModuleCase(TestCase, SaltClientTestCaseMixIn):
         '''
         return self.run_function(_function, args, **kw)
 
+    def profile_function(self, function, arg=(), minion_tgt='minion', timeout=25, **kwargs):
+        '''
+        Simply profile a function and generate a dump file for it
+
+        This does _not_ follow the codepaths for module execution, but
+        instead tracks function calls from the master-side as a call as a
+        LocalClient instance is constructed and a request is fired to a minion.
+
+        Because this uses a synchronous LocalClient instance, it also tracks
+        polling while the master waits for the minion to return.
+        '''
+        profile_dump = os.path.join(PROFILE, self.id())
+
+        cProfile.runctx('self.client.cmd(minion_tgt, function, arg, timeout=timeout, kwarg=kwargs)', globals(), locals(), filename=profile_dump)
+
     def run_function(self, function, arg=(), minion_tgt='minion', timeout=25,
-                     **kwargs):
+                     profile=False, **kwargs):
         '''
         Run a single salt function and condition the return down to match the
         behavior of the raw function call
@@ -886,6 +912,8 @@ class ModuleCase(TestCase, SaltClientTestCaseMixIn):
         know_to_return_none = (
             'file.chown', 'file.chgrp', 'ssh.recv_known_host'
         )
+        if profile:
+            self.profile_function(function, arg=arg, minion_tgt=minion_tgt, timeout=timeout, **kwargs)
         orig = self.client.cmd(
             minion_tgt, function, arg, timeout=timeout, kwarg=kwargs
         )
