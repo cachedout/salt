@@ -101,8 +101,10 @@ def latest(name,
                 ('{0}').format(out))
     try:
         current_info = __salt__['svn.info'](cwd, target, user=user, username=username, password=password, fmt='dict')
+        if current_info['URL'] != name:
+            svn_cmd = 'svn.switch'
         svn_cmd = 'svn.update'
-    except exceptions.CommandExecutionError:
+    except (KeyError, exceptions.CommandExecutionError):
         pass
 
     if rev:
