@@ -54,3 +54,5 @@ Vagrantfile
 # locale/zh_CN/LC_MESSAGES/topics/virt/nic.mo
 *.mo
 .doctrees
+
+_version.py
