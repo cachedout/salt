@@ -728,7 +728,7 @@ class AESFuncs(object):
             states=False,
             rend=False)
         self.__setup_fileserver()
-        self.masterapi = salt.daemons.masterapi.RemoteFuncs(opts)
+        self.remoteapi = salt.daemons.masterapi.RemoteFuncs(opts)
 
     def __setup_fileserver(self):
         '''
@@ -861,7 +861,7 @@ class AESFuncs(object):
         load = self.__verify_load(load, ('id', 'tok'))
         if load is False:
             return {}
-        return self.masterapi._ext_nodes(load, skip_verify=True)
+        return self.remoteapi._ext_nodes(load, skip_verify=True)
 
     def _master_opts(self, load):
         '''
@@ -894,7 +894,7 @@ class AESFuncs(object):
         if load is False:
             return {}
         else:
-            return self.masterapi._mine_get(load, skip_verify=True)
+            return self.remoteapi._mine_get(load, skip_verify=True)
 
     def _mine(self, load):
         '''
@@ -903,7 +903,7 @@ class AESFuncs(object):
         load = self.__verify_load(load, ('id', 'data', 'tok'))
         if load is False:
             return {}
-        return self.masterapi._mine(load, skip_verify=True)
+        return self.remoteapi._mine(load, skip_verify=True)
 
     def _mine_delete(self, load):
         '''
@@ -913,7 +913,7 @@ class AESFuncs(object):
         if load is False:
             return {}
         else:
-            return self.masterapi._mine_delete(load)
+            return self.remoteapi._mine_delete(load)
 
     def _mine_flush(self, load):
         '''
@@ -923,7 +923,7 @@ class AESFuncs(object):
         if load is False:
             return {}
         else:
-            return self.masterapi._mine_flush(load, skip_verify=True)
+            return self.remoteapi._mine_flush(load, skip_verify=True)
 
     def _file_recv(self, load):
         '''
@@ -1039,7 +1039,7 @@ class AESFuncs(object):
         load = self.__verify_load(load, ('id', 'tok'))
         if load is False:
             return {}
-        self.masterapi._minion_event(load)
+        self.remoteapi._minion_event(load)
 
     def _return(self, load):
         '''
@@ -1105,7 +1105,7 @@ class AESFuncs(object):
         if load is False:
             return {}
         else:
-            return self.masterapi.minion_runner(clear_load)
+            return self.remoteapi.minion_runner(clear_load)
 
     def pub_ret(self, load):
         '''
@@ -1149,7 +1149,7 @@ class AESFuncs(object):
         if not self.__verify_minion_publish(clear_load):
             return {}
         else:
-            return self.masterapi.minion_pub(clear_load)
+            return self.remoteapi.minion_pub(clear_load)
 
     def minion_publish(self, clear_load):
         '''
@@ -1172,7 +1172,7 @@ class AESFuncs(object):
         if not self.__verify_minion_publish(clear_load):
             return {}
         else:
-            return self.masterapi.minion_publish(clear_load, skip_verify=True)
+            return self.remoteapi.minion_publish(clear_load, skip_verify=True)
 
     def revoke_auth(self, load):
         '''
@@ -1182,7 +1182,7 @@ class AESFuncs(object):
         if load is False:
             return load
         else:
-            return self.masterapi.revoke_auth(load)
+            return self.remoteapi.revoke_auth(load)
 
     def run_func(self, func, load):
         '''
