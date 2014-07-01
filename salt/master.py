@@ -47,6 +47,7 @@ import salt.utils.event
 import salt.utils.verify
 import salt.utils.minions
 import salt.utils.gzip_util
+import salt.utils.warn_until
 from salt.utils.debug import enable_sigusr1_handler, enable_sigusr2_handler, inspect_stack
 from salt.exceptions import MasterExit
 from salt.utils.event import tagify
@@ -1169,6 +1170,10 @@ class AESFuncs(object):
         This configuration will only allow the minion foo.example.com to
         execute commands from the test module
         '''
+        salt.utils.warn_until(
+            'Lithium',
+            'Minion publish is being deprecated.'
+        )
         if not self.__verify_minion_publish(clear_load):
             return {}
         else:
