@@ -66,7 +66,7 @@ class CallTest(integration.ShellCase, integration.ShellCaseCommonTestsMixIn):
         src = os.path.join(integration.FILES, 'file/base/top.sls')
         dst = os.path.join(integration.FILES, 'file/base/top.sls.bak')
         shutil.move(src, dst)
-        expected_comment = 'No matching sls found for'
+        expected_comment = 'No Top file '
         try:
             stdout, retcode = self.run_call(
                 '-l quiet --retcode-passthrough state.highstate',
@@ -74,8 +74,7 @@ class CallTest(integration.ShellCase, integration.ShellCaseCommonTestsMixIn):
             )
         finally:
             shutil.move(dst, src)
-        # Commented out -- some change in `develop` that's not worth tracking down
-        #self.assertIn(expected_comment, ''.join(stdout))
+        self.assertIn(expected_comment, ''.join(stdout))
         self.assertNotEqual(0, retcode)
 
     @skipIf(sys.platform.startswith('win'), 'This test does not apply on Win')
