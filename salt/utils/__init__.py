@@ -512,6 +512,8 @@ def dns_check(addr, safe=False, ipv6=False):
     '''
     error = False
     try:
+        if ':' in addr:
+            addr, _ = addr.split(':')
         hostnames = socket.getaddrinfo(
             addr, None, socket.AF_UNSPEC, socket.SOCK_STREAM
         )

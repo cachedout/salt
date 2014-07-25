@@ -131,8 +131,11 @@ def resolve_dns(opts):
             log.warning('Master ip address changed from {0} to {1}'.format(opts['master_ip'],
                                                                           ret['master_ip'])
             )
-    ret['master_uri'] = 'tcp://{ip}:{port}'.format(ip=ret['master_ip'],
-                                                   port=opts['master_port'])
+    if ':' in opts['master']:  # Override master_port setting
+        ret['master_uri'] = 'tcp://{ip}'.format(ip=opts['master'])
+    else:
+        ret['master_uri'] = 'tcp://{ip}:{port}'.format(ip=ret['master_ip'],
+                                                       port=opts['master_port'])
     return ret
 
 
@@ -1323,8 +1326,11 @@ class Minion(MinionBase):
         '''
         Return the master publish port
         '''
-        return 'tcp://{ip}:{port}'.format(ip=self.opts['master_ip'],
-                                          port=self.publish_port)
+        if ':' in self.opts['master_ip']:
+            return 'tcp://{ip}'.format(ip=self.opts['master_ip'])
+        else:
+            return 'tcp://{ip}:{port}'.format(ip=self.opts['master_ip'],
+                                              port=self.publish_port)
 
     def authenticate(self, timeout=60, safe=True):
         '''

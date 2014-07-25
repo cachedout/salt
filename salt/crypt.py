@@ -536,7 +536,7 @@ class Auth(object):
         '''
         auth = {}
         m_pub_fn = os.path.join(self.opts['pki_dir'], self.mpub)
-
+        log.debug('Master URI: {0}'.format(self.opts['master_uri']))
         sreq = salt.payload.SREQ(
             self.opts['master_uri'],
         )

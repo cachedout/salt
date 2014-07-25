@@ -481,7 +481,6 @@ class ReqServer(object):
                 os.remove(dfn)
             except os.error:
                 pass
-        log.info('Setting up the master communication server')
         self.clients.bind(self.uri)
         self.work_procs = []
 

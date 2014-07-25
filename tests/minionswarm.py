@@ -44,6 +44,12 @@ def parse():
         default=False,
         help='Run a local master and tell the minions to connect to it')
     parser.add_option(
+        '--multimaster',
+        action='store_true',
+        dest='multimaster',
+        default=False,
+        help='Run two masters and configure minions to point to both')
+    parser.add_option(
         '--master',
         dest='master',
         default='salt',
@@ -147,7 +153,7 @@ class Swarm(object):
         '''
         Start the magic!!
         '''
-        if self.opts['master_too']:
+        if self.opts['master_too'] or self.opts['multimaster']:
             master_swarm = MasterSwarm(self.opts)
             master_swarm.start()
         minions = MinionSwarm(self.opts)
@@ -292,28 +298,46 @@ class MasterSwarm(Swarm):
     '''
     def __init__(self, opts):
         super(MasterSwarm, self).__init__(opts)
-        self.conf = os.path.join(self.swarm_root, 'master')
+#        self.conf = os.path.join(self.swarm_root, 'master')
+        self.opts = opts
+
+    def _conf_dir_path(self, idx):
+        '''
+        Helper function to return the sandbox dir for a given master
+        '''
+        return os.path.join(self.swarm_root, 'master', str(idx))
 
     def start(self):
         '''
         Prep the master start and fire it off
         '''
         # sys.stdout for no newline
-        sys.stdout.write('Generating master config...')
-        self.mkconf()
-        print('done')
+        if self.opts['multimaster']:
 
-        sys.stdout.write('Starting master...')
-        self.start_master()
-        print('done')
+            print('Starting two masters...')
+            for master in range(2):
+                sys.stdout.write('Generating multimaster configs...')
+                self.mkconf(master)
+                print('done')
+                sys.stdout.write('\tStarting master {0}...'.format(master))
+                self.start_master(master)
+                print('done')
+        else:
+            sys.stdout.write('Generating master config...')
+            self.mkconf(1)
+            print('done')
+            sys.stdout.write('Starting master...')
+            self.start_master(1)
+            print('done')
 
-    def start_master(self):
+    def start_master(self, idx):
         '''
-        Do the master start
+        Do the master start for a given master index
         '''
+        master_config_path = self._conf_dir_path(idx)
         cmd = 'salt-master -c {0} --pid-file {1}'.format(
-                self.conf,
-                '{0}.pid'.format(self.conf)
+                master_config_path,
+                '{0}.pid'.format(master_config_path, 'master')
                 )
         if self.opts['foreground']:
             cmd += ' -l debug &'
@@ -321,19 +345,22 @@ class MasterSwarm(Swarm):
             cmd += ' -d &'
         subprocess.call(cmd, shell=True)
 
-    def mkconf(self):
+    def mkconf(self, idx):
         '''
         Make a master config and write it'
         '''
+        master_config_path = self._conf_dir_path(idx)
+        print('Creating master directory at {0}'.format(master_config_path))
+        os.makedirs(master_config_path)
         data = {
-            'log_file': os.path.join(self.conf, 'master.log'),
-            'open_mode': True  # TODO Pre-seed keys
+            'log_file': os.path.join(master_config_path, 'master.log'),
+            'open_mode': True, # TODO Pre-seed keys
+            'sock_dir': master_config_path,
+            'cachedir': master_config_path,
+            'publish_port': 5505 + idx,
+            'ret_port': 5606 + idx,
         }
-
-        os.makedirs(self.conf)
-        path = os.path.join(self.conf, 'master')
-
-        with open(path, 'w+') as fp_:
+        with open(os.path.join(master_config_path, 'master'), 'w+') as fp_:
             yaml.dump(data, fp_)
 
     def shutdown(self):
