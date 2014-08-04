@@ -14,7 +14,6 @@ import tempfile
 import salt.crypt
 import salt.utils
 import salt.config
-import salt.syspaths
 
 
 # Set up logging
@@ -25,6 +24,13 @@ __func_alias__ = {
     'apply_': 'apply'
 }
 
+try:
+    import salt.cloud
+    import inspect
+    BOOTSTRAP = os.path.join(os.path.dirname(inspect.getfile(salt.cloud)), 'deploy', 'boostrap-salt.sh')
+except Exception:
+    BOOTSTRAP = None
+    pass
 
 def _file_or_content(file_):
     if os.path.exists(file_):
@@ -129,9 +135,13 @@ def apply_(path, id_=None, config=None, approve_key=True, install=True,
                  '{0}'.format(mpt))
         res = _install(mpt)
     elif prep_install:
-        log.error('The prep_install option is no longer supported. Please use '
-                  'the bootstrap script installed with Salt, located at {0}.'
-                  .format(salt.syspaths.BOOTSTRAP))
+        if BOOTSTRAP:
+            log.error('The prep_install option is no longer supported. Please use '
+                      'the bootstrap script installed with Salt, located at {0}.'
+                       .format(BOOTSTRAP))
+        else:
+            log.error('The prep_install option is no longer supported. Please use '
+                      'the bootstrap script installed with Salt.'
         res = False
     else:
         log.warn('No useful action performed on '
@@ -201,11 +211,13 @@ def _install(mpt):
     install it.
     Return True if install is successful or already installed.
     '''
-
+    if not BOOTSTRAP:
+        log.error('Can not determine path to the bootstrap file shipped with salt! Not installing.'
+        return False
     _check_resolv(mpt)
     # Exec the chroot command
     cmd = 'if type salt-minion; then exit 0; '
-    cmd += 'else sh {0} -c /tmp; fi'.format(salt.syspaths.BOOTSTRAP)
+    cmd += 'else sh {0} -c /tmp; fi'.format(BOOTSTRAP)
     return not __salt__['cmd.run_chroot'](mpt, cmd)['retcode']
 
 
