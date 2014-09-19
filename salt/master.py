@@ -1466,6 +1466,12 @@ class ClearFuncs(object):
     # publish (The publish from the LocalClient)
     # _auth
     def __init__(self, opts, key, master_key, crypticle):
+        '''
+        Return a ClearFuncs instance
+
+        :param dict opts: Salt options dictionary
+        :param 
+        '''
         self.opts = opts
         self.serial = salt.payload.Serial(opts)
         self.key = key
