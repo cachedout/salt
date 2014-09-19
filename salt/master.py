@@ -644,7 +644,7 @@ class MWorker(multiprocessing.Process):
         :param salt.crypt.Crypticle crypticle: Encryption crypticle
 
         :rtype: MWorker
-        :return: Master worker
+        :returns: Master worker
         '''
         multiprocessing.Process.__init__(self)
         self.opts = opts
@@ -730,7 +730,7 @@ class MWorker(multiprocessing.Process):
         Process a cleartext command
 
         :param dict load: Cleartext payload
-        :return: The result of passing the load to a function in ClearFuncs corresponding to
+        :returns: The result of passing the load to a function in ClearFuncs corresponding to
                  the command specified in the load's 'cmd' key.
         '''
         log.info('Clear payload received with command {cmd}'.format(**load))
@@ -753,7 +753,7 @@ class MWorker(multiprocessing.Process):
         Process a command sent via an AES key
 
         :param str load: Encrypted payload
-        :return: The result of passing the load to a function in AESFuncs corresponding to
+        :returns: The result of passing the load to a function in AESFuncs corresponding to
                  the command specified in the load's 'cmd' key.
         '''
         try:
@@ -861,7 +861,7 @@ class AESFuncs(object):
         :param str token: A string signed with the minion private key
 
         :rtype: bool
-        :return: Boolean indicating whether or not the token can be verified.
+        :returns: Boolean indicating whether or not the token can be verified.
         '''
         if not salt.utils.verify.valid_id(self.opts, id_):
             return False
@@ -897,7 +897,7 @@ class AESFuncs(object):
         :param dict clear_load: A publication load from a minion
 
         :rtype: bool
-        :return: A boolean indicating if the minion is allowed to publish the command in the load
+        :returns: A boolean indicating if the minion is allowed to publish the command in the load
         '''
         # Verify that the load is valid
         if 'peer' not in self.opts:
@@ -951,7 +951,7 @@ class AESFuncs(object):
 
         :rtype: bool
         :rtype: dict
-        :return: The original load (except for the token) if the load can be verified. False if the load is invalid.
+        :returns: The original load (except for the token) if the load can be verified. False if the load is invalid.
         '''
         if any(key not in load for key in verify_keys):
             return False
@@ -983,7 +983,7 @@ class AESFuncs(object):
         specified
 
         :param dict load: A payload received from a minion
-        :return: The results from an external node classifier
+        :returns: The results from an external node classifier
         '''
         load = self.__verify_load(load, ('id', 'tok'))
         if load is False:
@@ -997,7 +997,7 @@ class AESFuncs(object):
         :param dict load: A payload received from a minion
 
         :rtype: dict
-        :return: The master options
+        :returns: The master options
         '''
         mopts = {}
         file_roots = {}
@@ -1025,7 +1025,7 @@ class AESFuncs(object):
         :param dict load: A payload received from a minion
 
         :rtype: dict
-        :return: Mine data from the specified minions
+        :returns: Mine data from the specified minions
         '''
         load = self.__verify_load(load, ('id', 'tgt', 'fun', 'tok'))
         if load is False:
@@ -1040,7 +1040,7 @@ class AESFuncs(object):
         :param dict load: A payload received from a minion
 
         :rtype: bool
-        :return: True if the data has been stored in the mine
+        :returns: True if the data has been stored in the mine
         '''
         load = self.__verify_load(load, ('id', 'data', 'tok'))
         if load is False:
@@ -1054,7 +1054,7 @@ class AESFuncs(object):
         :param dict load: A payload received from a minion
 
         :rtype: bool
-        :return: Boolean indicating whether or not the given function was deleted from the mine
+        :returns: Boolean indicating whether or not the given function was deleted from the mine
         '''
         load = self.__verify_load(load, ('id', 'fun', 'tok'))
         if load is False:
@@ -1149,7 +1149,7 @@ class AESFuncs(object):
         :param dict load: Minion payload
 
         :rtype: dict
-        :return: The pillar data for the minion
+        :returns: The pillar data for the minion
         '''
         if any(key not in load for key in ('id', 'grains')):
             return False
@@ -1269,7 +1269,7 @@ class AESFuncs(object):
         :param dict clear_load: The minion payload
 
         :rtype: dict
-        :return: The runner function data
+        :returns: The runner function data
         '''
         load = self.__verify_load(clear_load, ('fun', 'arg', 'id', 'tok'))
         if load is False:
@@ -1285,7 +1285,7 @@ class AESFuncs(object):
         :param dict load: The minion payload
 
         :rtype: dict
-        :return: Return data corresponding to a given JID
+        :returns: Return data corresponding to a given JID
         '''
         load = self.__verify_load(load, ('jid', 'id', 'tok'))
         if load is False:
@@ -1380,10 +1380,10 @@ class AESFuncs(object):
         :param dict load: The minion payload
 
         :rtype: dict
-        :return: If the load is invalid, it may be returned. No key operation is performed.
+        :returns: If the load is invalid, it may be returned. No key operation is performed.
 
         :rtype: bool
-        :return: True if key was revoked, False if not
+        :returns: True if key was revoked, False if not
         '''
         load = self.__verify_load(load, ('id', 'tok'))
         if load is False:
@@ -1396,7 +1396,7 @@ class AESFuncs(object):
         Wrapper for running functions executed with AES encryption
 
         :param function func: The function to run
-        :return: The result of the master function that was called
+        :returns: The result of the master function that was called
         '''
         # Don't honor private functions
         if func.startswith('__'):
