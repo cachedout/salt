@@ -12,6 +12,12 @@ config files, or via a minion's pillar data.
     running on the master the functions reference runner functions, when
     running on the minion the functions specify execution functions.
 
+    A message such as 'Unavailable function: ...' may be logged if a function
+    is specified that does not correspond to the role of the system. For
+    example, 'test.ping' is only available on a minion because it is an
+    execution function while the 'manage.up' runner is only available for 
+    scheduling on a salt master.
+
 Specify ``maxrunning`` to ensure that there are no more than N copies of
 a particular routine running.  Use this for jobs that may be long-running
 and could step on each other or otherwise double execute.  The default for 

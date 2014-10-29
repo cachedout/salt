@@ -289,7 +289,7 @@ class Schedule(object):
             func = None
         if func not in self.functions:
             log.info(
-                'Invalid function: {0} in job {1}. Ignoring.'.format(
+                'Unavailable function: {0} in job {1}. Ignoring.'.format(
                     func, name
                 )
             )
