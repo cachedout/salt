@@ -137,20 +137,14 @@ def clean_expired_tokens(opts):
                         pass
 
 
-def clean_old_jobs(opts):
+def clean_old_jobs(opts, returners):
     '''
     Clean out the old jobs from the job cache
     '''
-    # TODO: better way to not require creating the masterminion every time?
-    mminion = salt.minion.MasterMinion(
-                opts,
-                states=False,
-                rend=False,
-                )
     # If the master job cache has a clean_old_jobs, call it
     fstr = '{0}.clean_old_jobs'.format(opts['master_job_cache'])
-    if fstr in mminion.returners:
-        mminion.returners[fstr]()
+    if fstr in returners:
+        returners[fstr]()
 
 
 def access_keys(opts):

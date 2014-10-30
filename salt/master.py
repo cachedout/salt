@@ -143,7 +143,7 @@ class Maintenance(multiprocessing.Process):
         while True:
             now = int(time.time())
             if (now - last) >= self.loop_interval:
-                salt.daemons.masterapi.clean_old_jobs(self.opts)
+                salt.daemons.masterapi.clean_old_jobs(self.opts, self.returners)
                 salt.daemons.masterapi.clean_expired_tokens(self.opts)
             self.handle_search(now, last)
             self.handle_pillargit()
