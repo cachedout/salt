@@ -255,17 +255,6 @@ class Master(SMaster):
                     )
                 )
 
-    def __handle_error_react(self, event):
-        log.error('Received minion error from [{minion}]: {data}'.format(minion=event['id'], data=event['data']['exception']))
-
-    def __register_reactions(self):
-        '''
-        Register any reactions the master will need
-        '''
-        log.info('Registering master reactions')
-        log.info('Registering master error handling')
-        self.opts['reactor'].append({'_salt_error': self.__handle_error_react})
-
     def _pre_flight(self):
         '''
         Run pre flight checks. If anything in this method fails then the master
@@ -273,7 +262,6 @@ class Master(SMaster):
         '''
         errors = []
         fileserver = salt.fileserver.Fileserver(self.opts)
-        self.__register_reactions()
         if not fileserver.servers:
             errors.append(
                 'Failed to load fileserver backends, the configured backends '
@@ -1126,7 +1114,19 @@ class AESFuncs(object):
         load = self.__verify_load(load, ('id', 'tok'))
         if load is False:
             return {}
+        # Route to master event bus
         self.masterapi._minion_event(load)
+        # Process locally
+        self._handle_minion_event(load)
+
+    def _handle_minion_event(self, load):
+        '''
+        Act on specific events from minions
+        '''
+        if load.get('tag', '') == '_salt_error':
+            log.error('Received minion error from [{minion}]: '
+                      '{data}'.format(minion=load['id'],
+                                      data=load['data']['exception']))
 
     def _return(self, load):
         '''
