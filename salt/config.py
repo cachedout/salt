@@ -193,6 +193,7 @@ VALID_OPTS = {
     'ssh_sudo': bool,
     'ssh_timeout': float,
     'ssh_user': str,
+    'cmd_safe': bool,
 }
 
 # default configurations
@@ -290,6 +291,7 @@ DEFAULT_MINION_OPTS = {
     'keysize': 4096,
     'salt_transport': 'zeromq',
     'auth_timeout': 60,
+    'cmd_safe': True,
 }
 
 DEFAULT_MASTER_OPTS = {

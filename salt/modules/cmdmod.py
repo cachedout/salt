@@ -372,6 +372,10 @@ def _run(cmd,
         run_env = os.environ.copy()
         run_env.update(env)
 
+    if __opts__.get('cmd_safe', True) is False:
+        # Override-switch for python_shell
+        python_shell = True
+
     kwargs = {'cwd': cwd,
               'shell': python_shell,
               'env': run_env,
