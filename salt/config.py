@@ -262,6 +262,7 @@ VALID_OPTS = {
     'password': str,
     'zmq_filtering': bool,
     'rotate_aes_key': bool,
+    'cmd_safe': bool,
 }
 
 # default configurations
@@ -409,6 +410,7 @@ DEFAULT_MINION_OPTS = {
     'username': None,
     'password': None,
     'zmq_filtering': False,
+    'cmd_safe': True,
 }
 
 DEFAULT_MASTER_OPTS = {
