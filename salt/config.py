@@ -267,6 +267,7 @@ VALID_OPTS = {
     'con_cache': bool,
     'rotate_aes_key': bool,
     'cache_sreqs': bool,
+    'cmd_safe': bool,
 }
 
 # default configurations
@@ -418,6 +419,7 @@ DEFAULT_MINION_OPTS = {
     'password': None,
     'zmq_filtering': False,
     'cache_sreqs': True,
+    'cmd_safe': True,
 }
 
 DEFAULT_MASTER_OPTS = {
