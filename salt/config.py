@@ -419,7 +419,7 @@ DEFAULT_MINION_OPTS = {
     'password': None,
     'zmq_filtering': False,
     'cache_sreqs': True,
-    'cmd_safe': True,
+    'cmd_safe': None,
 }
 
 DEFAULT_MASTER_OPTS = {
