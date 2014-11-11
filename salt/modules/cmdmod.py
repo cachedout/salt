@@ -604,7 +604,7 @@ def run(cmd,
 
         salt '*' cmd.run cmd='sed -e s/=/:/g'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     ret = _run(cmd,
@@ -790,7 +790,7 @@ def run_stdout(cmd,
 
         salt '*' cmd.run_stdout "grep f" stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     ret = _run(cmd,
@@ -876,7 +876,7 @@ def run_stderr(cmd,
 
         salt '*' cmd.run_stderr "grep f" stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     ret = _run(cmd,
@@ -962,7 +962,7 @@ def run_all(cmd,
 
         salt '*' cmd.run_all "grep f" stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     ret = _run(cmd,
@@ -1047,7 +1047,7 @@ def retcode(cmd,
 
         salt '*' cmd.retcode "grep f" stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     ret = _run(cmd,
@@ -1167,7 +1167,7 @@ def script(source,
 
         salt '*' cmd.script salt://scripts/runme.sh stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     def _cleanup_tempfile(path):
@@ -1274,7 +1274,7 @@ def script_retcode(source,
 
         salt '*' cmd.script_retcode salt://scripts/runme.sh stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+    if __opts__.get('cmd_safe', True) is False and python_shell is None:
         # Override-switch for python_shell
         python_shell = True
     if isinstance(__env__, string_types):
