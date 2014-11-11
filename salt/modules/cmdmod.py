@@ -315,9 +315,6 @@ def _run(cmd,
         run_env = os.environ.copy()
         run_env.update(env)
 
-    if __opts__.get('cmd_safe', False) is False and python_shell is None:
-        # Override-switch for python_shell
-        python_shell = True
 
     kwargs = {'cwd': cwd,
               'shell': python_shell,
@@ -357,9 +354,8 @@ def _run(cmd,
             .format(cwd)
         )
 
-    if python_shell is False and not isinstance(cmd, list):
+    if python_shell is not True and not isinstance(cmd, list):
         cmd = shlex.split(cmd)
-
     if not use_vt:
         # This is where the magic happens
         try:
@@ -607,6 +603,9 @@ def run(cmd,
 
         salt '*' cmd.run cmd='sed -e s/=/:/g'
     '''
+    if __opts__.get('cmd_safe', False) is False and python_shell is None:
+        # Override-switch for python_shell
+        python_shell = True
     ret = _run(cmd,
                runas=runas,
                shell=shell,
@@ -748,7 +747,7 @@ def run_stdout(cmd,
                stdin=None,
                runas=None,
                shell=DEFAULT_SHELL,
-               python_shell=False,
+               python_shell=None,
                env=None,
                clean_env=False,
                template=None,
@@ -831,7 +830,7 @@ def run_stderr(cmd,
                stdin=None,
                runas=None,
                shell=DEFAULT_SHELL,
-               python_shell=False,
+               python_shell=None,
                env=None,
                clean_env=False,
                template=None,
@@ -914,7 +913,7 @@ def run_all(cmd,
             stdin=None,
             runas=None,
             shell=DEFAULT_SHELL,
-            python_shell=False,
+            python_shell=None,
             env=None,
             clean_env=False,
             template=None,
@@ -997,7 +996,7 @@ def retcode(cmd,
             stdin=None,
             runas=None,
             shell=DEFAULT_SHELL,
-            python_shell=False,
+            python_shell=None,
             env=None,
             clean_env=False,
             template=None,
@@ -1074,7 +1073,7 @@ def _retcode_quiet(cmd,
                    stdin=None,
                    runas=None,
                    shell=DEFAULT_SHELL,
-                   python_shell=False,
+                   python_shell=None,
                    env=None,
                    clean_env=False,
                    template=None,
@@ -1116,7 +1115,7 @@ def script(source,
            stdin=None,
            runas=None,
            shell=DEFAULT_SHELL,
-           python_shell=False,
+           python_shell=None,
            env=None,
            template='jinja',
            umask=None,
@@ -1222,7 +1221,7 @@ def script_retcode(source,
                    stdin=None,
                    runas=None,
                    shell=DEFAULT_SHELL,
-                   python_shell=False,
+                   python_shell=None,
                    env=None,
                    template='jinja',
                    umask=None,
@@ -1339,9 +1338,8 @@ def exec_code(lang, code, cwd=None):
     codefile = salt.utils.mkstemp()
     with salt.utils.fopen(codefile, 'w+t') as fp_:
         fp_.write(code)
-
-    cmd = '{0} {1}'.format(lang, codefile)
-    ret = run(cmd, cwd=cwd)
+    cmd = [lang, codefile]
+    ret = run(cmd, cwd=cwd, python_shell=None)
     os.remove(codefile)
     return ret
 
