@@ -1046,9 +1046,6 @@ def retcode(cmd,
 
         salt '*' cmd.retcode "grep f" stdin='one\\ntwo\\nthree\\nfour\\nfive\\n'
     '''
-    if __opts__.get('cmd_safe', True) is False and python_shell is None:
-        # Override-switch for python_shell
-        python_shell = True
     ret = _run(cmd,
               runas=runas,
               cwd=cwd,
