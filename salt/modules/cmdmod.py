@@ -372,7 +372,7 @@ def _run(cmd,
         run_env = os.environ.copy()
         run_env.update(env)
 
-    if __opts__.get('cmd_safe', None) is False:
+    if __opts__.get('cmd_safe', False) is False and python_shell is False:
         # Override-switch for python_shell
         python_shell = True
 
@@ -519,7 +519,7 @@ def run(cmd,
         stdin=None,
         runas=None,
         shell=DEFAULT_SHELL,
-        python_shell=False,
+        python_shell=None,
         env=None,
         clean_env=False,
         template=None,
