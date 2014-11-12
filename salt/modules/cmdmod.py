@@ -372,6 +372,8 @@ def _run(cmd,
         run_env = os.environ.copy()
         run_env.update(env)
 
+    if python_shell is None:
+        python_shell = False
 
     kwargs = {'cwd': cwd,
               'shell': python_shell,
