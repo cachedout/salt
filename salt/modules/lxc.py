@@ -1282,7 +1282,7 @@ def ls_():
 
         salt '*' lxc.ls
     '''
-    return __salt__['cmd.run']('lxc-ls | sort -u').splitlines()
+    return __salt__['cmd.run']('lxc-ls | sort -u', python_shell=True).splitlines()
 
 
 def list_(extra=False):
@@ -1311,7 +1311,7 @@ def list_(extra=False):
         salt '*' lxc.list
         salt '*' lxc.list extra=True
     '''
-    ctnrs = __salt__['cmd.run']('lxc-ls | sort -u').splitlines()
+    ctnrs = __salt__['cmd.run']('lxc-ls | sort -u', python_shell=True).splitlines()
 
     if extra:
         stopped = {}
@@ -1691,7 +1691,7 @@ def info(name):
         ret['memory_free'] = free
         ret['size'] = __salt__['cmd.run'](
             ('lxc-attach --clear-env -n {0} -- '
-             'df /|tail -n1|awk \'{{print $2}}\'').format(pipes.quote(name)))
+             'df /|tail -n1|awk \'{{print $2}}\'').format(pipes.quote(name)), python_shell=True)
         ipaddr = __salt__['cmd.run'](
             'lxc-attach --clear-env -n {0} -- ip addr show'.format(pipes.quote(name)))
         for line in ipaddr.splitlines():
@@ -1753,7 +1753,7 @@ def set_pass(name, users, password):
                     pipes.quote(password),
                 )
             cmd += " true\""
-            cret = __salt__['cmd.run_all'](cmd)
+            cret = __salt__['cmd.run_all'](cmd, python_shell=True)
             if cret['retcode'] != 0:
                 raise ValueError('Can\'t change passwords')
             ret['comment'] = 'Password updated for {0}'.format(users)
@@ -1888,21 +1888,21 @@ def set_dns(name, dnsservers=None, searchdomains=None):
     has_resolvconf = not int(
         __salt__['cmd.run'](('lxc-attach --clear-env -n {0} -- '
                              'test -e /etc/resolvconf/resolv.conf.d/base;'
-                             'echo ${{?}}').format(pipes.quote(name))))
+                             'echo ${{?}}').format(pipes.quote(name))), python_shell=True)
     if has_resolvconf:
         cret = __salt__['cmd.run_all']((
             'lxc-attach --clear-env -n {0} -- '
             'rm /etc/resolvconf/resolv.conf.d/base &&'
             'echo {1}|lxc-attach --clear-env -n {0} -- '
             'tee /etc/resolvconf/resolv.conf.d/base'
-        ).format(pipes.quote(name), pipes.quote(dns)))
+        ).format(pipes.quote(name), pipes.quote(dns)), python_shell=True)
         if not cret['retcode']:
             ret['result'] = True
     cret = __salt__['cmd.run_all']((
         'lxc-attach --clear-env -n {0} -- rm /etc/resolv.conf &&'
         'echo {1}|lxc-attach --clear-env -n {0} -- '
         'tee /etc/resolv.conf'
-    ).format(pipes.quote(name), pipes.quote(dns)))
+    ).format(pipes.quote(name), pipes.quote(dns)), python_shell=True)
     if not cret['retcode']:
         ret['result'] = True
     return ret
@@ -2073,7 +2073,7 @@ def attachable(name):
         salt 'minion' lxc.attachable ubuntu
     '''
     cmd = 'lxc-attach -n {0} -- true'.format(pipes.quote(name))
-    data = __salt__['cmd.run_all'](cmd)
+    data = __salt__['cmd.run_all'](cmd, python_shell=True)
     if not data['retcode']:
         return True
     if data['stderr'].startswith('lxc-attach: failed to get the init pid'):
@@ -2133,7 +2133,7 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
         cmd = 'lxc-attach --clear-env {0} -n {1} -- {2}'.format(env, pipes.quote(name), cmd)
 
         if not use_vt:
-            res = __salt__['cmd.run_all'](cmd)
+            res = __salt__['cmd.run_all'](cmd, python_shell=False)
         else:
             stdout, stderr = '', ''
             try:
@@ -2179,7 +2179,7 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
                 proc.close(terminate=True, kill=True)
     else:
         rootfs = info(name).get('rootfs')
-        res = __salt__['cmd.run_chroot'](rootfs, cmd)
+        res = __salt__['cmd.run_chroot'](rootfs, cmd, python_shell=True)
 
     if preserve_state:
         if prior_state == 'stopped':
@@ -2224,13 +2224,13 @@ def cp(name, src, dest):
 
     # before touching to existing file which may disturb any running
     # process, check that the md5sum are different
-    cmd = 'md5sum {0} 2> /dev/null'.format(src)
-    csrcmd5 = __salt__['cmd.run_all'](cmd)
+    cmd = 'md5sum {0} 2> /dev/null'.format(pipes.quote(src))
+    csrcmd5 = __salt__['cmd.run_all'](cmd, python_shell=True)
     srcmd5 = csrcmd5['stdout'].split()[0]
 
     cmd = 'lxc-attach --clear-env -n {0} -- md5sum {1} 2> /dev/null'.format(
-        pipes.quote(name), dest)
-    cdestmd5 = __salt__['cmd.run_all'](cmd)
+        pipes.quote(name), pipes.quote(dest))
+    cdestmd5 = __salt__['cmd.run_all'](cmd, python_shell=True)
     if not cdestmd5['retcode']:
         try:
             destmd5 = cdestmd5['stdout'].split()[0]
@@ -2248,7 +2248,7 @@ def cp(name, src, dest):
         cmd = 'cat {0} | lxc-attach --clear-env -n {1} -- tee {2} > /dev/null'.format(
             pipes.quote(src), pipes.quote(name), pipes.quote(dest))
         log.info(cmd)
-        ret = __salt__['cmd.run_all'](cmd)
+        ret = __salt__['cmd.run_all'](cmd, python_shell=True)
     return ret
 
 
