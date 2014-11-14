@@ -273,7 +273,6 @@ def create(name, config=None, profile=None, options=None, **kwargs):
         return {'created': False, 'error':
                 'container could not be created: {0}'.format(ret['stderr'])}
 
-
 def list_():
     '''
     List defined containers (running, stopped, and frozen).
@@ -282,7 +281,7 @@ def list_():
 
         salt '*' lxc.list
     '''
-    ctnrs = __salt__['cmd.run']('lxc-ls | sort -u').splitlines()
+    ctnrs = __salt__['cmd.run']('lxc-ls | sort -u', python_shell=True).splitlines()
 
     stopped = []
     frozen = []
