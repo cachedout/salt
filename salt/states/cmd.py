@@ -270,7 +270,7 @@ def _run_check(cmd_kwargs, onlyif, unless, group):
                 return {'comment': 'onlyif execution failed',
                         'result': True}
         elif isinstance(onlyif, string_types):
-            if __salt__['cmd.retcode'](onlyif, **cmd_kwargs) != 0:
+            if __salt__['cmd.retcode'](onlyif, python_shell=False, **cmd_kwargs) != 0:
                 return {'comment': 'onlyif execution failed',
                         'result': True}
 
@@ -280,7 +280,7 @@ def _run_check(cmd_kwargs, onlyif, unless, group):
                 return {'comment': 'unless execution succeeded',
                         'result': True}
         elif isinstance(unless, string_types):
-            if __salt__['cmd.retcode'](unless, **cmd_kwargs) == 0:
+            if __salt__['cmd.retcode'](unless, python_shell=False, **cmd_kwargs) == 0:
                 return {'comment': 'unless execution succeeded',
                         'result': True}
 
@@ -599,7 +599,7 @@ def run(name,
         if not __opts__['test']:
             try:
                 cmd_all = __salt__['cmd.run_all'](
-                    name, timeout=timeout, **cmd_kwargs
+                    name, timeout=timeout, python_shell=False, **cmd_kwargs
                 )
             except CommandExecutionError as err:
                 ret['comment'] = str(err)
@@ -770,7 +770,7 @@ def script(name,
 
         # Wow, we passed the test, run this sucker!
         try:
-            cmd_all = __salt__['cmd.script'](source, **cmd_kwargs)
+            cmd_all = __salt__['cmd.script'](source, python_shell=False, **cmd_kwargs)
         except (CommandExecutionError, SaltRenderError, IOError) as err:
             ret['comment'] = str(err)
             return ret
