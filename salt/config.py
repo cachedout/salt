@@ -278,6 +278,7 @@ VALID_OPTS = {
     'con_cache': bool,
     'rotate_aes_key': bool,
     'cache_sreqs': bool,
+    'monitor_zmq': bool,
 }
 
 # default configurations
@@ -613,6 +614,7 @@ DEFAULT_MASTER_OPTS = {
     'con_cache': False,
     'rotate_aes_key': True,
     'cache_sreqs': True,
+    'monitor_zmq': False,
 }
 
 # ----- Salt Cloud Configuration Defaults ----------------------------------->

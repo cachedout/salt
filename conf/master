@@ -656,6 +656,13 @@
 #
 #log_granular_levels: {}
 
+# ZeroMQ can log socket events. To log these events to the master log, enable
+# 'monitor_zmq'. This will create additional threads on the master and may incur
+# a small performance penelty on a busy master. ZeroMQ socket events will appear
+# in the master log when logging at the 'trace' log level.
+#
+# To monitor ZeroMQ sockets, ZeroMQ 4.0 or higher is required.
+#monitor_zmq: False
 
 #####         Node Groups           #####
 ##########################################
