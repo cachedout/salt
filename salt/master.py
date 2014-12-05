@@ -484,19 +484,25 @@ class Publisher(multiprocessing.Process):
         self.opts = opts
 
     def monitor_target(self, monitor):
-        while True:
+        # Event map borrowed from pyzmq example
+        EVENT_MAP = {}
+        for name in dir(zmq):
+            if name.startswith('EVENT_'):
+                value = getattr(zmq, name)
+                EVENT_MAP[value] = name
+
+        while monitor.poll():
             try:
-                print 'Monitoring socket'
-                mon_msg = zmq.utils.monitor.recv_monitor_message(monitor, flags=zmq.EVENT_ALL)
-                if mon_msg:
-                    assert False
+                msg = zmq.utils.monitor.recv_monitor_message(monitor, flags=zmq.EVENT_ALL)
+                if msg:
+                    log.trace('Publish socket event: {0}'.format(msg))
+                    print 'Reason: {0}'.format(EVENT_MAP[msg['event']])
             except zmq.ZMQError as ex:
                 if ex.errno == errno.EAGAIN or ex.errno == errno.EINTR:
                     continue
                 else:
                     raise
-            finally:
-                time.sleep(1.0)
+        monitor.close()
 
     def run(self):
         '''
@@ -520,7 +526,6 @@ class Publisher(multiprocessing.Process):
             # IPv6 sockets work for both IPv6 and IPv4 addresses
             pub_sock.setsockopt(zmq.IPV4ONLY, 0)
         pub_uri = 'tcp://{interface}:{publish_port}'.format(**self.opts)
-        pub_monitor_uri = 'inproc://{0}'.format('mon_pub')
         # Prepare minion pull socket
         pull_sock = context.socket(zmq.PULL)
         pull_uri = 'ipc://{0}'.format(
@@ -533,10 +538,7 @@ class Publisher(multiprocessing.Process):
         pub_sock.bind(pub_uri)
 
         # Start the minion command publisher monitor
-        log.info('Starting the Salt Publisher monitor on {0}'.format(pub_monitor_uri))
-        mon_sock = context.socket(zmq.PAIR)
-        pub_sock.monitor(pub_monitor_uri)
-        monitor = mon_sock.get_monitor_socket()
+        monitor = pub_sock.get_monitor_socket()
 
         # Securely create socket
         log.info('Starting the Salt Puller on {0}'.format(pull_uri))
