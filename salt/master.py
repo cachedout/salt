@@ -15,11 +15,13 @@ import shutil
 import logging
 import hashlib
 import resource
+import threading
 import multiprocessing
 import sys
 
 # Import third party libs
 import zmq
+import zmq.utils.monitor
 from M2Crypto import RSA
 
 # Import salt libs
@@ -481,6 +483,21 @@ class Publisher(multiprocessing.Process):
         super(Publisher, self).__init__()
         self.opts = opts
 
+    def monitor_target(self, monitor):
+        while True:
+            try:
+                print 'Monitoring socket'
+                mon_msg = zmq.utils.monitor.recv_monitor_message(monitor, flags=zmq.EVENT_ALL)
+                if mon_msg:
+                    assert False
+            except zmq.ZMQError as ex:
+                if ex.errno == errno.EAGAIN or ex.errno == errno.EINTR:
+                    continue
+                else:
+                    raise
+            finally:
+                time.sleep(1.0)
+
     def run(self):
         '''
         Bind to the interface specified in the configuration file
@@ -503,6 +520,7 @@ class Publisher(multiprocessing.Process):
             # IPv6 sockets work for both IPv6 and IPv4 addresses
             pub_sock.setsockopt(zmq.IPV4ONLY, 0)
         pub_uri = 'tcp://{interface}:{publish_port}'.format(**self.opts)
+        pub_monitor_uri = 'inproc://{0}'.format('mon_pub')
         # Prepare minion pull socket
         pull_sock = context.socket(zmq.PULL)
         pull_uri = 'ipc://{0}'.format(
@@ -514,6 +532,12 @@ class Publisher(multiprocessing.Process):
         log.info('Starting the Salt Publisher on {0}'.format(pub_uri))
         pub_sock.bind(pub_uri)
 
+        # Start the minion command publisher monitor
+        log.info('Starting the Salt Publisher monitor on {0}'.format(pub_monitor_uri))
+        mon_sock = context.socket(zmq.PAIR)
+        pub_sock.monitor(pub_monitor_uri)
+        monitor = mon_sock.get_monitor_socket()
+
         # Securely create socket
         log.info('Starting the Salt Puller on {0}'.format(pull_uri))
         old_umask = os.umask(0o177)
@@ -521,6 +545,10 @@ class Publisher(multiprocessing.Process):
             pull_sock.bind(pull_uri)
         finally:
             os.umask(old_umask)
+
+        # Start a thread for monitor processing
+        monitor_thread = threading.Thread(group=None, target=self.monitor_target, args=(monitor,))
+        monitor_thread.run()
 
         try:
             while True:
