@@ -633,16 +633,6 @@ class Auth(object):
         '''
         auth = {}
 
-        auth_timeout = self.opts.get('auth_timeout', None)
-        if auth_timeout is not None:
-            timeout = auth_timeout
-        auth_safemode = self.opts.get('auth_safemode', None)
-        if auth_safemode is not None:
-            safe = auth_safemode
-        auth_tries = self.opts.get('auth_tries', None)
-        if auth_tries is not None:
-            tries = auth_tries
-
         m_pub_fn = os.path.join(self.opts['pki_dir'], self.mpub)
 
         sreq = salt.payload.SREQ(
