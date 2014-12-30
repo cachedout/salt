@@ -64,7 +64,7 @@ def _parse_quota(mount, opts):
             continue
         comps = line.split()
         if mode == 'header':
-            if 'Block grace time' in line:
+            if 'Block grace time' in line and 'Report for' not in line:
                 blockg, inodeg = line.split(';')
                 blockgc = blockg.split(': ')
                 inodegc = inodeg.split(': ')
