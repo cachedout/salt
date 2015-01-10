@@ -45,6 +45,10 @@ def _mine_send(load, opts):
     event_ret = eventer.fire_event(load, '_minion_mine')
     # We need to pause here to allow for the decoupled nature of
     # events time to allow the mine to propogate 
+    #
+    # This is necessary because many people may wish to use
+    # mine operations in quick succession and we want to 
+    # try and guarantee that updates are sequential in nature.
     time.sleep(2.0)
     return event_ret
 
