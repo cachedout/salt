@@ -299,8 +299,6 @@ class SaltEvent(object):
         :type pending_tags: list[str]
         :return:
         """
-        if match_func is None:
-            match_func = self._get_match_func()
         old_events = self.pending_events
         self.pending_events = []
         ret = None
