@@ -276,6 +276,9 @@ class MinionSwarm(Swarm):
             ignore = [fn_prefix for fn_prefix in fn_prefixes if fn_prefix not in keep]
             data['disable_modules'] = ignore
 
+        if self.opts['master_too']:
+            self.opts['master'] = 'localhost'
+
         with open(path, 'w+') as fp_:
             yaml.dump(data, fp_)
         self.confs.add(dpath)
