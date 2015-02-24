@@ -277,7 +277,7 @@ class MinionSwarm(Swarm):
             data['disable_modules'] = ignore
 
         if self.opts['master_too']:
-            self.opts['master'] = 'localhost'
+            data['master'] = 'localhost'
 
         with open(path, 'w+') as fp_:
             yaml.dump(data, fp_)
