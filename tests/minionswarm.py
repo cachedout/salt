@@ -155,7 +155,6 @@ class Swarm(object):
         minions = MinionSwarm(self.opts)
         minions.start_minions()
         print('Starting minions...')
-        #self.start_minions()
         print('All {0} minions have started.'.format(self.opts['minions']))
         print('Waiting for CTRL-C to properly shutdown minions...')
         while True:
@@ -334,6 +333,9 @@ class MasterSwarm(Swarm):
             'log_file': os.path.join(self.conf, 'master.log'),
             'open_mode': True  # TODO Pre-seed keys
         }
+
+        if self.opts['transport']:
+            data['transport'] = self.opts['transport']
 
         os.makedirs(self.conf)
         path = os.path.join(self.conf, 'master')
