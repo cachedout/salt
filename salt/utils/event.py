@@ -762,7 +762,7 @@ class EventReturn(multiprocessing.Process):
                 else:
                     log.error(
                         'Could not store return for event(s) {0}. Returner '
-                        '\'{1}\' not found.'
+                        '\'{1}\' not found or returner does not contain event_return function.'
                         .format(event_queue, self.opts['event_return'])
                     )
 
