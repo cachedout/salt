@@ -203,12 +203,37 @@ class MetaJobHooksTestCase(integration.ModuleCase):
         # TODO
         assert False
 
+    @patch('salt.utils.daemonize_if', MagicMock())
     def test_job_finish_fire(self):
         '''
         Test that the job finish hook is fired
         '''
-        # TODO
-        assert False
+        opts = dict(self.get_config('minion'))
+        # Note the change in the func here!
+        opts['job_meta'] = {'minion_job_finish': {'test.false': 'fakearg1'}}
+        minion = salt.minion.Minion(opts)
+        # Ensure the minion matches the target
+        minion._target_load = MagicMock(return_value=True)
+
+        clear_load = {'fun': 'test.ping',
+                      'arg': '',
+                      'tgt': '*',
+                      'tgt_type': 'glob',
+                      'user': 'plato',
+                      'key': 'traffic',
+                      'jid': '12345',
+                      'ret': '',
+                     }
+        load = {}
+        load['load'] = clear_load
+        minion.functions = MagicMock()
+        minion.proc_dir = ''
+        minion.serial = salt.payload.Serial(opts)
+        minion.function_errors = {}
+        minion._return_pub = MagicMock()
+
+        salt.minion.Minion._thread_return(minion, opts, clear_load)
+        minion.functions.__getitem__.assert_called_with('test.false')
 
     def test_meta_load(self):
         '''
