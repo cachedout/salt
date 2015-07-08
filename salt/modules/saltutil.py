@@ -963,3 +963,10 @@ def mmodule(saltenv, fun, *args, **kwargs):
     '''
     mminion = _MMinion(saltenv)
     return mminion.functions[fun](*args, **kwargs)
+
+
+def timestamp():
+    '''
+    Return a current UNIX epoch timestamp
+    '''
+    return time.time()

@@ -425,6 +425,9 @@ VALID_OPTS = {
     # A master-only copy of the file_roots dictionary, used by the state compiler
     'master_roots': dict,
 
+    # A list of hooks in which to fire execution modules to generate meta data which can be stored
+    # by a returner or other external system.
+    'job_meta': list,
 
     'gitfs_remotes': list,
     'gitfs_mountpoint': str,
@@ -1046,7 +1049,22 @@ DEFAULT_MASTER_OPTS = {
     'rotate_aes_key': True,
     'cache_sreqs': True,
     'dummy_pub': False,
+    'job_meta': [],
 }
+
+# <----- Meta Job Hooks ------------------------------------------------------>
+# Job hooks declare places wherein an arbitrary execution module may be
+# called and the results recorded via a returner. See the `job_meta`
+# configuration option for additional details.
+VALID_JOB_HOOKS = [
+    'master_tx',
+    'minion_rx',
+    'minion_job_start',
+    'minion_job_finish',
+    'minion_tx',
+    'master_rx',
+# <!---- Meta Job Hooks -----------------------------------------------------!>
+]
 
 # ----- Salt Cloud Configuration Defaults ----------------------------------->
 CLOUD_CONFIG_DEFAULTS = {
@@ -1118,6 +1136,39 @@ def _validate_file_roots(opts):
             opts['file_roots'][saltenv] = []
         opts['file_roots'][saltenv] = _expand_glob_path(opts['file_roots'][saltenv])
     return opts['file_roots']
+
+
+def _validate_job_meta(job_meta_config):
+    '''
+    Take the `job_meta` key and ensure that the
+    data structure is valid
+
+    :return: The job_meta dict if no errors, else empty dict
+    '''
+    error_found = False
+    invalid_hook_found = False
+    # If there's nothing here, it's valid ;]
+    if not job_meta_config:
+        return True
+    for hook_config in job_meta_config:
+        for hook in hook_config:
+            if hook not in VALID_JOB_HOOKS:
+                log.error('The hook {invalid_hook} declared in the `job_meta` config '
+                              'is invalid.'.format(invalid_hook=hook))
+                invalid_hook_found = error_found = True
+            # Sanity check to make sure the values are execution modules
+            for exc_mod in hook_config[hook]:
+                if not re.match(r'\A[a-z]*\.[a-z]*\Z', exc_mod):
+                    log.error('The hook {hook} should use an execution module. Currently using: '
+                                  '{invalid_module}'.format(hook=hook, invalid_module=exc_mod))
+                    error_found = True
+
+    if invalid_hook_found:
+        log.error('Choices for valid hooks are: {valid_hooks}'.format(valid_hooks=VALID_JOB_HOOKS))
+
+    if error_found:
+        log.error('Errors found in job_meta configuration. Job meta data will not be stored.')
+    return {} if error_found else job_meta_config
 
 
 def _expand_glob_path(file_roots):
@@ -2650,6 +2701,8 @@ def apply_master_config(overrides=None, defaults=None):
     opts['open_mode'] = opts['open_mode'] is True
     opts['auto_accept'] = opts['auto_accept'] is True
     opts['file_roots'] = _validate_file_roots(opts)
+
+    opts['job_meta'] = _validate_job_meta(opts['job_meta'])
 
     if opts['file_ignore_regex']:
         # If file_ignore_regex was given, make sure it's wrapped in a list.

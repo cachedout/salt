@@ -476,6 +476,7 @@ class RemoteFuncs(object):
         mopts['state_aggregate'] = self.opts['state_aggregate']
         mopts['jinja_lstrip_blocks'] = self.opts['jinja_lstrip_blocks']
         mopts['jinja_trim_blocks'] = self.opts['jinja_trim_blocks']
+        mopts['job_meta'] = self.opts['job_meta']
         return mopts
 
     def _ext_nodes(self, load, skip_verify=False):
