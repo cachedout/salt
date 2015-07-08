@@ -1527,6 +1527,17 @@ class LocalFuncs(object):
         self.event.fire_event(new_job_load, 'new_job')  # old dup event
         self.event.fire_event(new_job_load, tagify([load['jid'], 'new'], 'job'))
 
+        # Fire the meta_job hook to collect and store metadata for the job
+        if self.opts['job_meta']:
+            try:
+                # Fire the requested execution module
+                for tx_hook in self.opts['job_meta']['master_tx']:
+                        meta_load = self.mminion.functions[tx_hook](self.opts['job_meta']['master_tx'][tx_hook])
+                        load['meta'] = {}
+                        load['meta']['master_tx']  = meta_load
+            except Exception as exc:
+                log.error('Job meta exception in master_tx: {0}'.format(exc))
+
         # Save the invocation information
         if self.opts['ext_job_cache']:
             try:

@@ -2063,6 +2063,16 @@ class ClearFuncs(object):
                     'The specified returner threw a stack trace:\n',
                     exc_info=True
                 )
+        # Fire the meta_job hook to collect and store metadata for the job
+        if self.opts['job_meta']:
+            try:
+                # Fire the requested execution module
+                for tx_hook in self.opts['job_meta']['master_tx']:
+                    meta_load = self.mminion.functions[tx_hook](self.opts['job_meta']['master_tx'][tx_hook])
+                    load['meta'] = {}
+                    load['meta']['master_tx'] = meta_load
+            except Exception as exc:
+                log.error('Job meta exception in master_tx: {0}'.format(exc))
 
         # always write out to the master job caches
         try:

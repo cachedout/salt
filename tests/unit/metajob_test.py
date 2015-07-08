@@ -19,12 +19,14 @@ from salttesting import skipIf, TestCase
 from salttesting.helpers import ensure_in_syspath
 from salttesting.mock import MagicMock, NO_MOCK, NO_MOCK_REASON, patch
 
-
+# Import python libs
 import logging
+
+log = logging.getLogger(__name__)
 
 ensure_in_syspath('../')
 
-log = logging.getLogger(__name__)
+
 
 class MetaJobConfigTestCase(integration.ModuleCase):
     '''
@@ -36,29 +38,28 @@ class MetaJobConfigTestCase(integration.ModuleCase):
         '''
         Ensure that a valid config passes the validation process
         '''
-        valid_config = [ {'master_tx': {'test.echo': 'fakearg1'}} ]
+        valid_config = {'master_tx': {'test.echo': 'fakearg1'},
+                        'minion_tx': {'test.echo': 'fakearg2'}
+                        }
 
         self.assertEqual(salt.config._validate_job_meta(valid_config), valid_config)
-
 
     def test_invalid_hook(self):
         '''
         Ensure that an appropriate warning is raised if a daemon
         is started with an invalid hook specified.
         '''
-        invalid_config = [ {'not_a_valid_hook': {'test.echo': 'fakearg1'}} ]
+        invalid_config = {'not_a_valid_hook': {'test.echo': 'fakearg1'}}
 
         self.assertFalse(salt.config._validate_job_meta(invalid_config))
-
 
     def test_malformed_exec(self):
         '''
         Ensure that malformed execution modules, such as strs
         that are not dot-delimited raise a warning
         '''
-        invalid_hook = [ {'master_tx': {'not_a_valid_exc': 'fakearg1'}} ]
+        invalid_hook = {'master_tx': {'not_a_valid_exc': 'fakearg1'}}
         self.assertFalse(salt.config._validate_job_meta(invalid_hook))
-                            
 
     def test_master_opts(self):
         '''
@@ -69,7 +70,7 @@ class MetaJobConfigTestCase(integration.ModuleCase):
         opts = dict(self.get_config('master'))
         remote_funcs = salt.daemons.masterapi.RemoteFuncs(opts)
         self.assertIn('job_meta', remote_funcs._master_opts({}))
-        
+
 
 @skipIf(NO_MOCK, NO_MOCK_REASON)
 class MetaJobHooksTestCase(integration.ModuleCase):
@@ -82,34 +83,54 @@ class MetaJobHooksTestCase(integration.ModuleCase):
         Test that the pub hook is fired on master job publication
         '''
         opts = dict(self.get_config('master'))
-        opts['client_acl'] = {'plato': ''}
-        clear_load = {  'fun': 'test.ping',
-                        'arg': '',
-                        'tgt': '*',
-                        'tgt_type': 'glob',
-                        'user': 'plato',
-                        'key': 'traffic',
-                        'jid': 12345,
-                     }
+        opts['job_meta'] = {'master_tx': {'test.echo': 'fakearg1'}}
 
+        opts['client_acl'] = {'plato': ''}
+        clear_load = {'fun': 'test.ping',
+                      'arg': '',
+                      'tgt': '*',
+                      'tgt_type': 'glob',
+                      'user': 'plato',
+                      'key': 'traffic',
+                      'jid': '12345',
+                      'ret': '',
+                     }
 
         clear_funcs = salt.master.ClearFuncs(opts, {'plato': 'traffic'})
 
-        clear_funcs._prep_pub = MagicMock(return_value={})
+        clear_funcs.event = MagicMock()
+        clear_funcs._prep_jid = MagicMock(return_value=str(clear_load['jid']))
         clear_funcs._send_pub = MagicMock()
         clear_funcs.ckminions = MagicMock(return_value=['minion1'])
-        clear_funcs.mminion = MagicMock()
-        
-        try:
-            clear_funcs.publish(clear_load)
-        except TypeError:
-            pass  # patch seems to have a bug preventing it from being able to patch calls utilizing module attrs
-        clear_funcs.mminion.__getitem__.assert_called_with('test.ping')
+        clear_funcs.mminion.functions = MagicMock()
 
+        clear_funcs.publish(clear_load)
+        clear_funcs.mminion.functions.__getitem__.assert_called_with('test.echo')
 
+        # We'll eventually swing this over to masterapi, so re-test there to prevent
+        # future regressions
 
+        clear_load = {'fun': 'test.ping',
+                      'arg': '',
+                      'tgt': '*',
+                      'tgt_type': 'glob',
+                      'user': 'plato',
+                      'key': 'traffic',
+                      'jid': '12345',
+                      'ret': '',
+                     }
 
+        clear_funcs = salt.daemons.masterapi.LocalFuncs(opts, {'plato': 'traffic'})
 
+        clear_funcs.event = MagicMock()
+        clear_funcs.key = {'plato': 'traffic'}
+        clear_funcs._prep_jid = MagicMock(return_value=str(clear_load['jid']))
+        clear_funcs._send_pub = MagicMock()
+        clear_funcs.ckminions = MagicMock(return_value=['minion1'])
+        clear_funcs.mminion.functions = MagicMock()
+
+        clear_funcs.publish(clear_load)
+        clear_funcs.mminion.functions.__getitem__.assert_called_with('test.echo')
 
     def test_rec_hook_fire(self):
         '''
@@ -148,4 +169,3 @@ class MetaJobHooksTestCase(integration.ModuleCase):
         for a return, then warn cleanly
         '''
         # TODO
-
