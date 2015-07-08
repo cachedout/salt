@@ -934,13 +934,14 @@ class Minion(MinionBase):
         Override this method if you wish to handle the decoded data
         differently.
         '''
-        if self.opts.get('job_meta', False) and 'minion_rx' in self.opts['job_meta']:
+        if self.opts.get('job_meta') and 'minion_rx' in self.opts['job_meta']:
             # Record the job meta data rx
             meta_load = []
             data['meta'] = {}
             try:
                 for rx_hook in self.opts['job_meta']['minion_rx']:
-                    data['meta']['minion_rx'] = self.functions[rx_hook](self.opts['job_meta']['minion_rx'][rx_hook])
+                    meta_load.append(self.functions[rx_hook](self.opts['job_meta']['minion_rx'][rx_hook]))
+                data['meta']['minion_rx'] = meta_load
             except Exception as exc:
                 log.error('Job meta exception in minion_rx: {0}'.format(exc))
 
@@ -1023,6 +1024,16 @@ class Minion(MinionBase):
         sdata = {'pid': os.getpid()}
         sdata.update(data)
         log.info('Starting a new job with PID {0}'.format(sdata['pid']))
+        if opts.get('job_meta') and 'minion_job_start' in opts['job_meta']:
+            # Record the job meta data start
+            meta_load = []
+            data['meta'] = {}
+            try:
+                for job_start_hook in opts['job_meta']['minion_job_start']:
+                    meta_load.append(minion_instance.functions[job_start_hook](opts['job_meta']['minion_job_start'][job_start_hook]))
+                data['meta'] = meta_load
+            except Exception as exc:
+                log.error('Job meta exception in minion job_start: {0}'.format(exc))
         with salt.utils.fopen(fn_, 'w+b') as fp_:
             fp_.write(minion_instance.serial.dumps(sdata))
         ret = {'success': False}
@@ -1119,6 +1130,8 @@ class Minion(MinionBase):
         ret['jid'] = data['jid']
         ret['fun'] = data['fun']
         ret['fun_args'] = data['arg']
+        if 'meta' in data:
+            ret['meta'] = data['meta']
         if 'master_id' in data:
             ret['master_id'] = data['master_id']
         if 'metadata' in data:
