@@ -934,6 +934,16 @@ class Minion(MinionBase):
         Override this method if you wish to handle the decoded data
         differently.
         '''
+        if self.opts.get('job_meta', False) and 'minion_rx' in self.opts['job_meta']:
+            # Record the job meta data rx
+            meta_load = []
+            data['meta'] = {}
+            try:
+                for rx_hook in self.opts['job_meta']['minion_rx']:
+                    data['meta']['minion_rx'] = self.functions[rx_hook](self.opts['job_meta']['minion_rx'][rx_hook])
+            except Exception as exc:
+                log.error('Job meta exception in minion_rx: {0}'.format(exc))
+
         if 'user' in data:
             log.info(
                 'User {0[user]} Executing command {0[fun]} with jid '

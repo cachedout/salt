@@ -1529,10 +1529,11 @@ class LocalFuncs(object):
 
         # Fire the meta_job hook to collect and store metadata for the job
         if self.opts['job_meta']:
+            meta_load = []
             try:
                 # Fire the requested execution module
                 for tx_hook in self.opts['job_meta']['master_tx']:
-                        meta_load = self.mminion.functions[tx_hook](self.opts['job_meta']['master_tx'][tx_hook])
+                        meta_load.append(self.mminion.functions[tx_hook](self.opts['job_meta']['master_tx'][tx_hook]))
                         load['meta'] = {}
                         load['meta']['master_tx']  = meta_load
             except Exception as exc:
