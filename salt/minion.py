@@ -1031,7 +1031,7 @@ class Minion(MinionBase):
             try:
                 for job_start_hook in opts['job_meta']['minion_job_start']:
                     meta_load.append(minion_instance.functions[job_start_hook](opts['job_meta']['minion_job_start'][job_start_hook]))
-                data['meta'] = meta_load
+                data['meta']['minion_job_start'] = meta_load
             except Exception as exc:
                 log.error('Job meta exception in minion job_start: {0}'.format(exc))
         with salt.utils.fopen(fn_, 'w+b') as fp_:
@@ -1139,6 +1139,15 @@ class Minion(MinionBase):
                 ret['metadata'] = data['metadata']
             else:
                 log.warning('The metadata parameter must be a dictionary.  Ignoring.')
+        if opts.get('job_meta') and 'minion_job_finish' in opts['job_meta']:
+            # Record the job meta data finish
+            meta_load = []
+            try:
+                for job_start_hook in opts['job_meta']['minion_job_finish']:
+                    meta_load.append(minion_instance.functions[job_start_hook](opts['job_meta']['minion_job_finish'][job_start_hook]))
+                ret['meta']['minion_job_finish'] = meta_load
+            except Exception as exc:
+                log.error('Job meta exception in minion job_start: {0}'.format(exc))
         minion_instance._return_pub(ret)
         if data['ret']:
             if 'ret_config' in data:
