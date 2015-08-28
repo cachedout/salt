@@ -244,7 +244,7 @@ class LocalClient(object):
                       'No command was sent, no jid was assigned.')
                 return {}
         else:
-            self.event.subscribe('syndic/.*/{0}'.format(pub_data['jid']), 'regex')
+            self.event.subscribe_regex('^syndic/.*/{0}'.format(pub_data['jid']))
 
         self.event.subscribe('salt/job/{0}'.format(pub_data['jid']))
 
@@ -807,8 +807,9 @@ class LocalClient(object):
     # TODO: tests!!
     def get_returns_no_block(
             self,
-            tag,
-            match_type=None):
+            jid,
+            tags_regex=None
+           ):
         '''
         Raw function to just return events of jid excluding timeout logic
 
@@ -820,8 +821,9 @@ class LocalClient(object):
         '''
 
         while True:
-            # CHANGED(driskell): This was previously completely nonblocking.
-            raw = self.event.get_event(wait=0.01, tag=tag, match_type=match_type, full=True)
+            # TODO(driskell): This was previously completely nonblocking.
+            #                 Should get_event have a nonblock option?
+            raw = self.event.get_event(wait=0.01, tag='salt/job/{0}'.format(jid), tags_regex=tags_regex, full=True)
             yield raw
 
     def get_iter_returns(
@@ -867,9 +869,9 @@ class LocalClient(object):
         # iterator for this job's return
         if self.opts['order_masters']:
             # If we are a MoM, we need to gather expected minions from downstreams masters.
-            ret_iter = self.get_returns_no_block('(salt/job|syndic/.*)/{0}'.format(jid), 'regex')
+            ret_iter = self.get_returns_no_block(jid, tags_regex=['^syndic/.*/{0}'.format(jid)])
         else:
-            ret_iter = self.get_returns_no_block('salt/job/{0}'.format(jid))
+            ret_iter = self.get_returns_no_block(jid)
         # iterator for the info of this job
         jinfo_iter = []
         timeout_at = time.time() + timeout
@@ -942,7 +944,7 @@ class LocalClient(object):
                 if 'jid' not in jinfo:
                     jinfo_iter = []
                 else:
-                    jinfo_iter = self.get_returns_no_block('salt/job/{0}'.format(jinfo['jid']))
+                    jinfo_iter = self.get_returns_no_block(jinfo['jid'])
                 timeout_at = time.time() + self.opts['gather_job_timeout']
                 # if you are a syndic, wait a little longer
                 if self.opts['order_masters']:
