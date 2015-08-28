@@ -21,7 +21,6 @@ except ImportError:
 import contextlib
 
 
-
 @contextlib.contextmanager
 def current_ioloop(io_loop):
     '''
