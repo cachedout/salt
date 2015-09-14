@@ -83,7 +83,7 @@ def _router_request(router, method, data=None):
         tid=1)])
 
     config = __salt__['config.option']('zenoss')
-    log.debug('Making request to router %s with method %s', router, method)
+    log.debug('Making request to router {0} with method {1}'.format(router, method))
     url = '{0}/zport/dmd/{1}_router'.format(config.get('hostname'), ROUTERS[router])
     response = _session().post(url, data=req_data)
 
@@ -122,10 +122,10 @@ def find_device(device=None):
         if dev['name'] == device:
             # We need to save the has for later operations
             dev['hash'] = all_devices['hash']
-            log.info('Found device %s in Zenoss', device)
+            log.info('Found device {0} in Zenoss'.format(device))
             return dev
 
-    log.info('Unable to find device %s in Zenoss', device)
+    log.info('Unable to find device {0} in Zenoss'.format(device))
     return None
 
 
@@ -167,7 +167,7 @@ def add_device(device=None, device_class=None, collector='localhost', prod_state
 
     if not device_class:
         device_class = _determine_device_class()
-    log.info('Adding device %s to zenoss', device)
+    log.info('Adding device {0} to zenoss'.format(device))
     data = dict(deviceName=device, deviceClass=device_class, model=True, collector=collector, productionState=prod_state)
     response = _router_request('DeviceRouter', 'addDevice', data=[data])
     return response
@@ -195,6 +195,6 @@ def set_prod_state(prod_state, device=None):
     if not device_object:
         return "Unable to find a device in Zenoss for {0}".format(device)
 
-    log.info('Setting prodState to %d on %s device', prod_state, device)
+    log.info('Setting prodState to {0} on {1} device'.format(prod_state, device))
     data = dict(uids=[device_object['uid']], prodState=prod_state, hashcheck=device_object['hash'])
     return _router_request('DeviceRouter', 'setProductionState', [data])
