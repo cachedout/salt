@@ -213,6 +213,12 @@ class SaltWheelError(SaltException):
     '''
 
 
+class SaltNSNotFound(SaltException):
+    '''
+    The resouce could not be found in the requested namespace
+    '''
+
+
 class SaltSystemExit(SystemExit):
     '''
     This exception is raised when an unsolvable problem is found. There's

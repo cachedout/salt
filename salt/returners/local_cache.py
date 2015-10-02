@@ -20,6 +20,8 @@ import salt.utils
 import salt.utils.jid
 import salt.exceptions
 
+from salt.exceptions import SaltNSNotFound
+
 # Import 3rd-party libs
 import salt.ext.six as six
 
@@ -308,6 +310,51 @@ def get_jids_filter(count, filter_find_job=True):
             del keys[0]
             del ret[0]
     return ret
+
+
+def get_ns(path, data, delimeter='.'):
+    '''
+    Retreive data from a namespaced path
+
+    :param str path: A namespaced path
+    :param dict data: A data object to store
+    :param str delimeter: The namspace delimiter
+
+    :returns dict: Requested data.
+    :raises: If the path to the cannot be resolved, raises SaltNSNotFound
+    '''
+    serial = salt.payload.Serial(__opts__)
+    fn_ = _convert_ns(path, delimeter)
+    if not os.path.exists(fn_):
+        raise SaltNSNotFound
+    return serial.load(salt.utils.fopen(fn_, 'rb'))
+
+
+def set_ns(path, data, delimeter='.'):
+    '''
+    Store data in a namespaced path
+
+    :param str path: A namespaced path
+    :param dict data: A data object to store
+    :param str delimiter: The namspace delimiter
+    '''
+    serial = salt.payload.Serial(__opts__)
+    fn_ = _convert_ns(path, delimeter)
+    if not os.path.exists(fn_):
+        raise SaltNSNotFound
+    return serial.load(salt.utils.fopen(fn_, 'w+b'))
+
+
+def _convert_ns(path, delimeter):
+    '''
+    Convert from a namespaced path to a filesystem path
+
+    :param str path: A namespaced path
+    :param str delimeter: The namespace delimeter.
+    :returns str: A filesystem path
+    '''
+    path_components = path.split(delimeter)
+    return os.path.join(__opts__['cachedir'], *path_components)
 
 
 def clean_old_jobs():
