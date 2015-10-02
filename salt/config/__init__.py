@@ -748,6 +748,12 @@ VALID_OPTS = {
 
     # HTTP request max file content size.
     'http_max_body': int,
+
+    # Salt namespace delimeter
+    'ns_delimeter': str,
+
+    # The returner to use to store mine data externally. The returner must support namespaced storage.
+    'ext_mine': str,
 }
 
 # default configurations
@@ -1176,6 +1182,8 @@ DEFAULT_MASTER_OPTS = {
     'dummy_pub': False,
     'http_request_timeout': 1 * 60 * 60.0,  # 1 hour
     'http_max_body': 100 * 1024 * 1024 * 1024,  # 100GB
+    'ns_delimeter': '.',
+    'ext_mine': 'local_cache',
 }
 
 
