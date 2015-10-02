@@ -582,7 +582,11 @@ class RemoteFuncs(object):
         if not skip_verify:
             if 'id' not in load or 'data' not in load:
                 return False
-        if self.opts.get('minion_data_cache', False) or self.opts.get('enforce_mine_cache', False):
+        mine_get_ns = '{ext_mine}.get_ns'.format(self.opts['ext_mine'])
+        mine_get_ns = '{ext_mine}.set_ns'.format(self.opts['ext_mine'])
+        if (self.opts.get('minion_data_cache', False) or \
+                self.opts.get('enforce_mine_cache', False)) and not \
+                '{0}.get_ns'.format(self.opts['ext_mine']) in self.mminion.returners:
             cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])
             if not os.path.isdir(cdir):
                 os.makedirs(cdir)
@@ -596,6 +600,18 @@ class RemoteFuncs(object):
                         load['data'] = new
             with salt.utils.fopen(datap, 'w+b') as fp_:
                 fp_.write(self.serial.dumps(load['data']))
+        # Same conditional as above, but with get_ns
+        elif (self.opts.get('minion_data_cache', False) or \
+                self.opts.get('enforce_mine_cache', False)) and \
+                mine_get_ns in self.mminion.returners:
+                   mine_ns_path = [self.opts['cachedir'], 'minions', load['id']].join(self.opts['ns_delimeter']) 
+                   if not load.get('clear', False):  # Refactoring target!
+                       # Refresh data
+                       new = self.mminion.returners[mine_get_ns](mine_ns_path, self.opts['ns_delimeter'])
+                       if isinstance(new, dict):
+                           new.update(load['data'])
+                           load['data'] = new
+                   self.mminion.returners[mine_set_ns](mine_ns_path, load['data'])
         return True
 
     def _mine_delete(self, load):
