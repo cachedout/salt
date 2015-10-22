@@ -1654,7 +1654,7 @@ class Minion(MinionBase):
         # TODO: actually listen to the return and change period
         def handle_schedule():
             self.process_schedule(self, loop_interval)
-        self.periodic_callbacks['schedule'] = tornado.ioloop.PeriodicCallback(handle_schedule, 1000, io_loop=self.io_loop)
+        self.periodic_callbacks['schedule'] = tornado.ioloop.PeriodicCallback(handle_schedule, loop_interval * 1000, io_loop=self.io_loop)
 
         # start all the other callbacks
         for periodic_cb in six.itervalues(self.periodic_callbacks):
