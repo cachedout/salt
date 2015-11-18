@@ -710,7 +710,7 @@ def setup_extended_logging(opts):
                     'The `log_handlers.{0}`, did not return any handlers '
                     'and the global handlers count did not increase. This '
                     'could be a sign of `log_handlers.{0}` not working as '
-                    'supposed'.format(name)
+                    'it is supposed to.'.format(name)
                 )
                 continue
 
