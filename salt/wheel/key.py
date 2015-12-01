@@ -106,7 +106,7 @@ def gen(id_=None, keysize=2048):
         id_ = hashlib.sha512(os.urandom(32)).hexdigest()
     ret = {'priv': '',
            'pub': ''}
-    priv = salt.crypt.gen_keys(__opts__['pki_dir'], id_, keysize)
+    priv = salt.crypt.gen_keys(__opts__, __opts__['pki_dir'], id_, keysize)
     pub = '{0}.pub'.format(priv[:priv.rindex('.')])
     with salt.utils.fopen(priv) as fp_:
         ret['priv'] = fp_.read()

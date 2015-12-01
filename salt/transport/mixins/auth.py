@@ -32,7 +32,7 @@ class AESPubClientMixin(object):
         if payload.get('sig') and self.opts.get('sign_pub_messages'):
             # Verify that the signature is valid
             master_pubkey_path = os.path.join(self.opts['pki_dir'], 'minion_master.pub')
-            if not salt.crypt.verify_signature(master_pubkey_path, payload['load'], payload.get('sig')):
+            if not salt.crypt.verify_signature(self.opts, master_pubkey_path, payload['load'], payload.get('sig')):
                 raise salt.crypt.AuthenticationError('Message signature failed to validate.')
 
     @tornado.gen.coroutine
@@ -416,7 +416,7 @@ class AESReqServerMixin(object):
                 # the master has its own signing-keypair, compute the master.pub's
                 # signature and append that to the auth-reply
                 log.debug("Signing master public key before sending")
-                pub_sign = salt.crypt.sign_message(self.master_key.get_sign_paths()[1],
+                pub_sign = salt.crypt.sign_message(self.opts, self.master_key.get_sign_paths()[1],
                                                    ret['pub_key'])
                 ret.update({'pub_sig': binascii.b2a_base64(pub_sign)})
 
@@ -448,7 +448,7 @@ class AESReqServerMixin(object):
             ret['aes'] = cipher.encrypt(salt.master.SMaster.secrets['aes']['secret'].value)
         # Be aggressive about the signature
         digest = hashlib.sha256(aes).hexdigest()
-        ret['sig'] = salt.crypt.private_encrypt(self.master_key.key, digest)
+        ret['sig'] = salt.crypt.private_encrypt(self.opts, self.master_key.key, digest)
         eload = {'result': True,
                  'act': 'accept',
                  'id': load['id'],

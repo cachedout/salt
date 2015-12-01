@@ -886,7 +886,7 @@ class AESFuncs(object):
                       .format(tmp_pub, err))
         try:
             os.remove(tmp_pub)
-            if salt.crypt.public_decrypt(pub, token) == 'salt':
+            if salt.crypt.public_decrypt(self.opts, pub, token) == 'salt':
                 return True
         except ValueError as err:
             log.error('Unable to decrypt token: {0}'.format(err))

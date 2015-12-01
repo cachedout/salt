@@ -155,8 +155,8 @@ def gen_keys(keysize=2048):
     if keysize < 2048:
         keysize = 2048
     tdir = tempfile.mkdtemp()
-
-    salt.crypt.gen_keys(tdir, 'minion', keysize)
+    opts = salt.config.minion_config()
+    salt.crypt.gen_keys(opts, tdir, 'minion', keysize)
     priv_path = os.path.join(tdir, 'minion.pem')
     pub_path = os.path.join(tdir, 'minion.pub')
     with salt.utils.fopen(priv_path) as fp_:

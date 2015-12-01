@@ -361,7 +361,8 @@ class KeyCLI(object):
                 print('Generating new signing key-pair {0}.* in {1}'
                       ''.format(self.opts['master_sign_key_name'],
                                 self.opts['pki_dir']))
-                salt.crypt.gen_keys(self.opts['pki_dir'],
+                salt.crypt.gen_keys(self.opts,
+                                    self.opts['pki_dir'],
                                     self.opts['master_sign_key_name'],
                                     self.opts['keysize'],
                                     self.opts.get('user'))
@@ -541,6 +542,7 @@ class Key(object):
         Generate minion RSA public keypair
         '''
         salt.crypt.gen_keys(
+                self.opts,
                 self.opts['gen_keys_dir'],
                 self.opts['gen_keys'],
                 self.opts['keysize'])
@@ -550,7 +552,8 @@ class Key(object):
         '''
         Generate master public-key-signature
         '''
-        return salt.crypt.gen_signature(privkey,
+        return salt.crypt.gen_signature(
+                                        privkey,
                                         pubkey,
                                         sig_path)
 

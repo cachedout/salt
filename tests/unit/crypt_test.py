@@ -91,21 +91,21 @@ class CryptTestCase(TestCase):
             open_priv_wb = call('/keydir/keyname.pem', 'wb+')
             open_pub_wb = call('/keydir/keyname.pub', 'wb+')
             with patch('os.path.isfile', return_value=True):
-                self.assertEqual(crypt.gen_keys('/keydir', 'keyname', 2048), '/keydir/keyname.pem')
+                self.assertEqual(crypt.gen_keys(self.opts, '/keydir', 'keyname', 2048), '/keydir/keyname.pem')
                 self.assertNotIn(open_priv_wb, salt.utils.fopen.mock_calls)
                 self.assertNotIn(open_pub_wb, salt.utils.fopen.mock_calls)
             with patch('os.path.isfile', return_value=False):
                 with patch('salt.utils.fopen', mock_open()):
-                    crypt.gen_keys('/keydir', 'keyname', 2048)
+                    crypt.gen_keys(self.opts, '/keydir', 'keyname', 2048)
                     salt.utils.fopen.assert_has_calls([open_priv_wb, open_pub_wb], any_order=True)
 
     def test_sign_message(self):
         with patch('salt.utils.fopen', mock_open(read_data=PRIVKEY_DATA)):
-            self.assertEqual(SIG, crypt.sign_message('/keydir/keyname.pem', MSG))
+            self.assertEqual(SIG, crypt.sign_message(self.opts, '/keydir/keyname.pem', MSG))
 
     def test_verify_signature(self):
         with patch('salt.utils.fopen', mock_open(read_data=PUBKEY_DATA)):
-            self.assertTrue(crypt.verify_signature('/keydir/keyname.pub', MSG, SIG))
+            self.assertTrue(crypt.verify_signature(self.opts, '/keydir/keyname.pub', MSG, SIG))
 
 
 if __name__ == '__main__':

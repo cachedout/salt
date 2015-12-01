@@ -194,7 +194,7 @@ class SaltZmqPublisher(ioflo.base.deeding.Deed):
                 if self.opts.value['sign_pub_messages']:
                     master_pem_path = os.path.join(self.opts.value['pki_dir'], 'master.pem')
                     log.debug('Signing data packet for publish')
-                    payload['sig'] = salt.crypt.sign_message(master_pem_path, payload['load'])
+                    payload['sig'] = salt.crypt.sign_message(self.opts, master_pem_path, payload['load'])
 
                 send_payload = self.serial.dumps(payload)
                 if self.opts.value['zmq_filtering']:

@@ -317,6 +317,9 @@
 # It will be interpreted as megabytes. Default: 100
 #file_recv_max_size: 100
 
+# Backend cryptography library
+# crypto_lib: pycrypto
+
 # Signature verification on messages published from the master.
 # This causes the master to cryptographically sign all messages published to its event
 # bus, and minions then verify that signature before acting on the message.

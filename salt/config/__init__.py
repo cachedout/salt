@@ -139,6 +139,9 @@ VALID_OPTS = {
     # The path to the salt configuration file
     'conf_file': str,
 
+    # The backend cryptography library
+    'crypto_lib': str,
+
     # The directory containing unix sockets for things like the event bus
     'sock_dir': str,
 
@@ -983,6 +986,7 @@ DEFAULT_MINION_OPTS = {
     # ZMQ HWM for EventPublisher pub socket - different for minion vs. master
     'event_publisher_pub_hwm': 1000,
     'event_match_type': 'startswith',
+    'crypto_lib': 'pycrypto',
 }
 
 DEFAULT_MASTER_OPTS = {
@@ -1225,6 +1229,7 @@ DEFAULT_MASTER_OPTS = {
     'http_max_body': 100 * 1024 * 1024 * 1024,  # 100GB
     'python2_bin': 'python2',
     'python3_bin': 'python3',
+    'crypto_lib': 'pycrypto',
 }
 
 

@@ -216,7 +216,7 @@ def mkconfig(config=None,
         os.chmod(pubkeyfn, 0o600)
         os.chmod(privkeyfn, 0o600)
     else:
-        salt.crypt.gen_keys(tmp, 'minion', 2048)
+        salt.crypt.gen_keys(__opts__, tmp, 'minion', 2048)
     if approve_key and not preseeded:
         with salt.utils.fopen(pubkeyfn) as fp_:
             pubkey = fp_.read()

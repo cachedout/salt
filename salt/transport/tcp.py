@@ -799,7 +799,7 @@ class TCPPubServerChannel(salt.transport.server.PubServerChannel):
         if self.opts['sign_pub_messages']:
             master_pem_path = os.path.join(self.opts['pki_dir'], 'master.pem')
             log.debug("Signing data packet")
-            payload['sig'] = salt.crypt.sign_message(master_pem_path, payload['load'])
+            payload['sig'] = salt.crypt.sign_message(self.opts, master_pem_path, payload['load'])
         # Use the Salt IPC server
         if self.opts.get('ipc_mode', '') == 'tcp':
             pull_uri = int(self.opts.get('tcp_master_publish_pull', 4514))

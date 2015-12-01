@@ -496,6 +496,9 @@
 # "salt-key -F master" on the Salt master.
 #master_finger: ''
 
+# Backend cryptography library
+# crypto_lib: pycrypto
+
 
 ######         Thread settings        #####
 ###########################################
