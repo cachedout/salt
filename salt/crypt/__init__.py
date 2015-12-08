@@ -88,6 +88,7 @@ def dropfile(cachedir, user=None):
     finally:
         os.umask(mask)  # restore original umask
 
+
 def gen_keys(opts, keydir, keyname, keysize, user=None):
     '''
     Generate a public keypair for use with salt
@@ -103,6 +104,7 @@ def gen_keys(opts, keydir, keyname, keysize, user=None):
     # Transitional wrapper to crypto factory
     return CryptoFactory.factory(opts).gen_keys(keydir, keyname, keysize, user=user)
 
+
 def sign_message(opts, privkey_path, message):
     '''
     Sign a message using the appropriate cryptography library. Return the signature.
@@ -116,6 +118,7 @@ def verify_signature(opts, pubkey_path, message, signature):
     Returns True for valid signature.
     '''
     return CryptoFactory.factory(opts).verify_signature(pubkey_path, message, signature)
+
 
 # TODO Move into a mixin, since this is not crypto-specific
 def gen_signature(opts, priv_path, pub_path, sign_path):
@@ -170,6 +173,7 @@ def public_decrypt(opts, pub, message):
         empty string if the verification failed
     '''
     return CryptoFactory.factory(opts).public_decrypt(pub, message)
+
 
 class MasterKeys(dict):
     '''
