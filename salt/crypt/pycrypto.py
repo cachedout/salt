@@ -6,9 +6,11 @@ Module for pycrypto cryptography routines
 import os
 import logging
 import hashlib
+import hmac
 
 # Import salt libraries
 import salt.utils
+from salt.exceptions import AuthenticationError
 
 # Import pycrypto libraries
 try:
@@ -124,6 +126,45 @@ class Crypt(object):  # TODO Start to build out mixins
         verifier = salt.utils.rsax931.RSAX931Verifier(pub.exportKey('PEM'))
         return verifier.verify(message)
 
+    @staticmethod
+    def encrypt(data, keys, aes_block_size):
+        '''
+        encrypt data with AES-CBC and sign it with HMAC-SHA256
+        '''
+        aes_key, hmac_key = keys
+        pad = aes_block_size - len(data) % aes_block_size
+        data = data + pad * chr(pad)
+        iv_bytes = os.urandom(aes_block_size)
+        cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
+        data = iv_bytes + cypher.encrypt(data)
+        sig = hmac.new(hmac_key, data, hashlib.sha256).digest()
+        return data + sig
+
+    @staticmethod
+    def decrypt(data, keys, sig_size, aes_block_size):
+        '''
+        verify HMAC-SHA256 signature and decrypt data with AES-CBC
+        '''
+        # TODO docstring params
+        aes_key, hmac_key = keys
+        sig = data[-sig_size:]
+        data = data[:-sig_size]
+        mac_bytes = hmac.new(hmac_key, data, hashlib.sha256).digest()
+        if len(mac_bytes) != len(sig):
+            log.debug('Failed to authenticate message')
+            raise AuthenticationError('message authentication failed')
+        result = 0
+        for zipped_x, zipped_y in zip(mac_bytes, sig):
+            result |= ord(zipped_x) ^ ord(zipped_y)
+        if result != 0:
+            log.debug('Failed to authenticate message')
+            raise AuthenticationError('message authentication failed')
+        iv_bytes = data[:aes_block_size]
+        data = data[aes_block_size:]
+        cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
+        data = cypher.decrypt(data)
+        return data[:-ord(data[-1])]
+
     # Begin instance methods
 
     def import_key(self, path):
@@ -162,3 +203,4 @@ class Crypt(object):  # TODO Start to build out mixins
             elif not master_pub:
                 return key_str, ''
         return '', ''
+

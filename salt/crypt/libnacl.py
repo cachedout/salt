@@ -7,6 +7,15 @@ except ImportError:
     # No need for crypt in local mode
     pass
 
+# Import Python libraries
+import msgpack
+import logging
+
+# Import salt libraries
+import salt.utils
+
+log = logging.getLogger(__name__)
+
 class Crypt(object):  # TODO Start to build out mixins
     '''
     libnacl routines
@@ -70,7 +79,19 @@ class Crypt(object):  # TODO Start to build out mixins
     @staticmethod
     def import_key(path):
         '''
-        Import an RSA key and return it
+        Import a Curve25519 key and return it
         :param path: The filesystem path to the key that is to be imported
-        :return: RSA key
+        :return: Curve25519 key
         '''
+        if os.path.exists(path):
+            with salt.utils.fopen(path) as f:
+                key = msgpack.load(f)
+            log.debug('Loaded key in path: {0}'.format(path))
+            return key
+
+    # Begin instance methods
+    def encrypt(self, data, **kwargs):
+        raise NotImplementedError
+
+    def decrypt(self, data, **kwargs):
+        raise NotImplementedError

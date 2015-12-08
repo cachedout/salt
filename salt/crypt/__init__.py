@@ -42,7 +42,7 @@ import salt.utils.rsax931
 import salt.utils.verify
 import salt.version
 from salt.exceptions import (
-    AuthenticationError, SaltClientError, SaltReqTimeoutError, SaltSystemExit
+    SaltClientError, SaltReqTimeoutError, SaltSystemExit
 )
 
 import tornado.gen
@@ -1082,6 +1082,7 @@ class Crypticle(object):
         self.keys = self.extract_keys(self.key_string, key_size)
         self.key_size = key_size
         self.serial = salt.payload.Serial(opts)
+        self.crypto = CryptoFactory.factory(opts)
 
     @classmethod
     def generate_key_string(cls, key_size=192):
@@ -1098,40 +1099,13 @@ class Crypticle(object):
         return key[:-cls.SIG_SIZE], key[-cls.SIG_SIZE:]
 
     def encrypt(self, data):
-        '''
-        encrypt data with AES-CBC and sign it with HMAC-SHA256
-        '''
-        aes_key, hmac_key = self.keys
-        pad = self.AES_BLOCK_SIZE - len(data) % self.AES_BLOCK_SIZE
-        data = data + pad * chr(pad)
-        iv_bytes = os.urandom(self.AES_BLOCK_SIZE)
-        cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
-        data = iv_bytes + cypher.encrypt(data)
-        sig = hmac.new(hmac_key, data, hashlib.sha256).digest()
-        return data + sig
+        return self.crypto.encrypt(data, self.keys, self.AES_BLOCK_SIZE)
 
     def decrypt(self, data):
         '''
         verify HMAC-SHA256 signature and decrypt data with AES-CBC
         '''
-        aes_key, hmac_key = self.keys
-        sig = data[-self.SIG_SIZE:]
-        data = data[:-self.SIG_SIZE]
-        mac_bytes = hmac.new(hmac_key, data, hashlib.sha256).digest()
-        if len(mac_bytes) != len(sig):
-            log.debug('Failed to authenticate message')
-            raise AuthenticationError('message authentication failed')
-        result = 0
-        for zipped_x, zipped_y in zip(mac_bytes, sig):
-            result |= ord(zipped_x) ^ ord(zipped_y)
-        if result != 0:
-            log.debug('Failed to authenticate message')
-            raise AuthenticationError('message authentication failed')
-        iv_bytes = data[:self.AES_BLOCK_SIZE]
-        data = data[self.AES_BLOCK_SIZE:]
-        cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
-        data = cypher.decrypt(data)
-        return data[:-ord(data[-1])]
+        return self.crypto.decrypt(data, self.keys, self.SIG_SIZE, self.AES_BLOCK_SIZE)
 
     def dumps(self, obj):
         '''
