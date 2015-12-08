@@ -5,6 +5,7 @@ Module for pycrypto cryptography routines
 # Import Python libraries
 import os
 import logging
+import hashlib
 
 # Import salt libraries
 import salt.utils
@@ -122,3 +123,42 @@ class Crypt(object):  # TODO Start to build out mixins
         '''
         verifier = salt.utils.rsax931.RSAX931Verifier(pub.exportKey('PEM'))
         return verifier.verify(message)
+
+    # Begin instance methods
+
+    def import_key(self, path):
+        '''
+        Import an RSA key and return it, selecting the proper path by inspecting opts
+        :return: RSA key
+        '''
+        if os.path.exists(path):
+            with salt.utils.fopen(path) as f:
+                key = RSA.importKey(f.read())
+            log.debug('Loaded key in path: {0}'.format(path))
+            return key
+
+    def decrypt_aes_with_key(self, payload, key, mpub, master_pub=True):
+        cipher = PKCS1_OAEP.new(key)
+        key_str = cipher.decrypt(payload['aes'])
+        if 'sig' in payload:
+            m_path = os.path.join(self.opts['pki_dir'], mpub)
+            if os.path.exists(m_path):
+                try:
+                    mkey = self.import_key(m_path)
+                except Exception:
+                    return '', ''
+                digest = hashlib.sha256(key_str).hexdigest()
+                m_digest = self.public_decrypt(mkey.publickey(), payload['sig'])
+                if m_digest != digest:
+                    return '', ''
+        else:
+            return '', ''
+        if '_|-' in key_str:
+            return key_str.split('_|-')
+        else:
+            if 'token' in payload:
+                token = cipher.decrypt(payload['token'])
+                return key_str, token
+            elif not master_pub:
+                return key_str, ''
+        return '', ''

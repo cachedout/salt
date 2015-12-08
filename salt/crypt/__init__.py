@@ -183,6 +183,9 @@ class MasterKeys(dict):
         self.opts = opts
         self.pub_path = os.path.join(self.opts['pki_dir'], 'master.pub')
         self.rsa_path = os.path.join(self.opts['pki_dir'], 'master.pem')
+        # The crypto sub-system must be initialized before the key attribute
+        # is assigned with self.__get_keys()
+        self.crypto = CryptoFactory.factory(opts)
 
         self.key = self.__get_keys()
         self.pub_signature = None
@@ -233,19 +236,17 @@ class MasterKeys(dict):
         '''
         path = os.path.join(self.opts['pki_dir'],
                             name + '.pem')
-        if os.path.exists(path):
-            with salt.utils.fopen(path) as f:
-                key = RSA.importKey(f.read())
-            log.debug('Loaded {0} key: {1}'.format(name, path))
-        else:
+        key = self.crypto.import_key(path)
+        if not key:
+            # We could not find a key on the filesystem
             log.info('Generating {0} keys: {1}'.format(name, self.opts['pki_dir']))
-            gen_keys(self.opts,
+            self.crypto.gen_keys(self.opts,
                      self.opts['pki_dir'],
                      name,
                      self.opts['keysize'],
                      self.opts.get('user'))
-            with salt.utils.fopen(self.rsa_path) as f:
-                key = RSA.importKey(f.read())
+            # Key has been generated, now try to open it
+            key = self.crypto.import_key(path)
         return key
 
     def get_pub_str(self, name='master'):
@@ -344,6 +345,8 @@ class AsyncAuth(object):
             self.get_keys()
 
         self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
+
+        self.crypt = CryptoFactory.factory(self.opts)
 
         salt.utils.reinit_crypto()
         key = self.__key(self.opts)
@@ -571,9 +574,7 @@ class AsyncAuth(object):
         salt.utils.verify.check_path_traversal(self.opts['pki_dir'], user)
 
         if os.path.exists(self.rsa_path):
-            with salt.utils.fopen(self.rsa_path) as f:
-                key = RSA.importKey(f.read())
-            log.debug('Loaded minion key: {0}'.format(self.rsa_path))
+            key = self.crypt.import_key(self.rsa_path)
         else:
             log.info('Generating keys: {0}'.format(self.opts['pki_dir']))
             gen_keys(self.opts,
@@ -610,8 +611,7 @@ class AsyncAuth(object):
         payload['id'] = self.opts['id']
         try:
             pubkey_path = os.path.join(self.opts['pki_dir'], self.mpub)
-            with salt.utils.fopen(pubkey_path) as f:
-                pub = RSA.importKey(f.read())
+            pub = self.crypt.import_key(pubkey_path)
             cipher = PKCS1_OAEP.new(pub)
             payload['token'] = cipher.encrypt(self.token)
         except Exception:
@@ -652,31 +652,7 @@ class AsyncAuth(object):
         else:
             log.debug('Decrypting the current master AES key')
         key = self.get_keys()
-        cipher = PKCS1_OAEP.new(key)
-        key_str = cipher.decrypt(payload['aes'])
-        if 'sig' in payload:
-            m_path = os.path.join(self.opts['pki_dir'], self.mpub)
-            if os.path.exists(m_path):
-                try:
-                    with salt.utils.fopen(m_path) as f:
-                        mkey = RSA.importKey(f.read())
-                except Exception:
-                    return '', ''
-                digest = hashlib.sha256(key_str).hexdigest()
-                m_digest = public_decrypt(self.opts, mkey.publickey(), payload['sig'])
-                if m_digest != digest:
-                    return '', ''
-        else:
-            return '', ''
-        if '_|-' in key_str:
-            return key_str.split('_|-')
-        else:
-            if 'token' in payload:
-                token = cipher.decrypt(payload['token'])
-                return key_str, token
-            elif not master_pub:
-                return key_str, ''
-        return '', ''
+        return self.crypt.decrypt_aes_with_key(payload, key, self.mpub, master_pub=master_pub)
 
     def verify_pubkey_sig(self, message, sig):
         '''

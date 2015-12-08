@@ -66,3 +66,11 @@ class Crypt(object):  # TODO Start to build out mixins
             empty string if the verification failed
         '''
         raise NotImplementedError
+
+    @staticmethod
+    def import_key(path):
+        '''
+        Import an RSA key and return it
+        :param path: The filesystem path to the key that is to be imported
+        :return: RSA key
+        '''
