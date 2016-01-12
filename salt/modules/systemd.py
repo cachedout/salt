@@ -291,6 +291,15 @@ def _service_is_sysv(name):
             _sysv_exists(name))
 
 
+def _sysv_is_disabled(name):
+    '''
+    A System-V style service is assumed disabled if there is no
+    start-up link (starts with "S") to its script in /etc/init.d in
+    the current runlevel.
+    '''
+    return not (bool(glob.glob('/etc/init.d/{0}'.format(name))) and bool(glob.glob('/etc/rc{0}.d/S*{1}'.format(_runlevel(), name))))
+
+
 def _sysv_is_enabled(name):
     '''
     A System-V style service is assumed disabled if the "startup" symlink
