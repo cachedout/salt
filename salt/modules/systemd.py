@@ -320,18 +320,14 @@ def get_enabled():
 
         salt '*' service.get_enabled
     '''
-    ret = set()
-    # Get enabled systemd units. Can't use --state=enabled here because it's
-    # not present until systemd 216.
-    out = __salt__['cmd.run'](
-        _systemctl_cmd('--full --no-legend --no-pager list-unit-files'),
-        python_shell=False,
-        ignore_retcode=True,
-    )
-    for line in salt.utils.itertools.split(out, '\n'):
-        try:
-            fullname, unit_state = line.strip().split(None, 1)
-        except ValueError:
+    ret = []
+    units = _get_all_unit_files()
+    services = _get_all_units()
+    for name, state in six.iteritems(units):
+        if state.strip() == 'enabled':
+            ret.append(name)
+    for name, state in six.iteritems(services):
+        if name in units:
             continue
         else:
             if unit_state != 'enabled':
