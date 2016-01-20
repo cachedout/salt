@@ -299,6 +299,7 @@ def save_mine(minion_id, mine_data):
                 VALUES (%s, %s)'''
         try:
             cur.execute(sql, (minion_id, json.dumps(mine_data)))
+            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
         except MySQLdb.IntegrityError:
             pass
 
@@ -311,9 +312,10 @@ def get_mine(minion_id):
     with _get_serv(ret=None, commit=True) as cur:
         sql = '''SELECT `data` FROM `mine_cache` WHERE `minion_id` = %s;'''
         cur.execute(sql, (minion_id,))
-        data = cur.fetchone()
-        if data:
-            return json.load(data[0])
+        mine_data = cur.fetchone()
+        log.trace('MySQL returner fetched mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
+        if mine_data:
+            return json.load(mine_data[0])
         return {}
 
 
