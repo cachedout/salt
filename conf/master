@@ -112,6 +112,12 @@
 #
 #event_return: mysql
 
+
+# Store mine data in a centralized cache.
+# Especially useful for multi-master or master/syndic toplogies so that all
+# masters can have a canonical source for mine data.
+#mine_cache: mysql
+
 # On busy systems, enabling event_returns can cause a considerable load on
 # the storage system for returners. Events can be queued on the master and
 # stored in a batched fashion using a single transaction for multiple events.

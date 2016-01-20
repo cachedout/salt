@@ -384,6 +384,10 @@ VALID_OPTS = {
     # have an event_return(event) function!
     'event_return': str,
 
+    # Specify a returner for mine data, to centralize the storage of mine data, especially among multiple
+    # masters and/or a master/syndic topology.
+    'mine_cache': str,
+
     # The number of events to queue up in memory before pushing them down the pipe to an event returner
     # specified by 'event_return'
     'event_return_queue': int,
@@ -1139,6 +1143,7 @@ DEFAULT_MASTER_OPTS = {
     'event_return_whitelist': [],
     'event_return_blacklist': [],
     'event_match_type': 'startswith',
+    'mine_cache': '',
     'serial': 'msgpack',
     'state_verbose': True,
     'state_output': 'full',
