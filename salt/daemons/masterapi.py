@@ -600,6 +600,11 @@ class RemoteFuncs(object):
                 return False
         if self.opts.get('minion_data_cache', False) or self.opts.get('enforce_mine_cache', False):
             if self.opts['mine_cache']:
+                fstr = '{0}.get_mine'.format(self.opts['mine_cache'])
+                if fstr in self.mminion.returners:
+                    cur_mine = self.mminion.returners[fstr](load['id'], load['data'])  # TODO verify
+                    if cur_mine:
+                        load['data'].update(cur_mine)
                 fstr = '{0}.save_mine'.format(self.opts['mine_cache'])
                 if fstr in self.mminion.returners:
                     self.mminion.returners[fstr](load['id'], load['data'])

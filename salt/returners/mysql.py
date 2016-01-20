@@ -295,11 +295,13 @@ def save_mine(minion_id, mine_data):
     '''
     cur_mine = get_mine(minion_id, mine_data['func'])
     if cur_mine:
-        mine_data = cur_mine.update(mine_data)
-    with _get_serv(commit=True) as cur:
+        sql = '''UPDATE `mine_cache`
+                SET data=%s WHERE minion_id=%s;'''
+    else:
         sql = '''INSERT INTO `mine_cache`
                 (`minion_id`, `data`)
                 VALUES (%s, %s)'''
+    with _get_serv(commit=True) as cur:
         try:
             cur.execute(sql, (minion_id, json.dumps(mine_data)))
             log.trace('MySQL returner stored mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
@@ -307,7 +309,7 @@ def save_mine(minion_id, mine_data):
             pass
 
 
-def get_mine(minion_id, func):
+def get_mine(minion_id, data, func=None):
     '''
     Return the cached mine data for a function for a given minion
     '''
@@ -318,7 +320,10 @@ def get_mine(minion_id, func):
         mine_data = cur.fetchone()
         log.trace('MySQL returner fetched mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
         if mine_data:
-            return json.load(mine_data[func])
+            if func:
+                return json.load(mine_data[func])
+            else:
+                return json.load(mine_data)
         return {}
 
 
