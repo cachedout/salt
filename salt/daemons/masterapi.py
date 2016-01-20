@@ -607,7 +607,7 @@ class RemoteFuncs(object):
                         load['data'].update(cur_mine)
                 fstr = '{0}.save_mine'.format(self.opts['mine_cache'])
                 if fstr in self.mminion.returners:
-                    self.mminion.returners[fstr](load['id'], load['data'])
+                    self.mminion.returners[fstr](load['id'], load['data'], self.opts['id'])
             else:
                 cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])
                 if not os.path.isdir(cdir):

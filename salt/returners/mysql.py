@@ -286,25 +286,28 @@ def returner(ret):
         log.critical('Could not store return with MySQL returner. MySQL server unavailable.')
 
 
-def save_mine(minion_id, mine_data):
+def save_mine(minion_id, mine_data, master_id):
     '''
     Cache a mine for a minion
 
     Requires that configuration be enabled via 'mine_cache: mysql'
-    settin in the Salt master configuration.
+    setting in the Salt master configuration.
+
+    The mine data will be entirely replaced. Any type of selective
+    update to the mine data should be handled by the caller.
     '''
-    cur_mine = get_mine(minion_id, mine_data['func'])
+    cur_mine = get_mine(minion_id, mine_data)
     if cur_mine:
-        sql = '''UPDATE `mine_cache`
-                SET data=%s WHERE minion_id=%s;'''
+        sql = '''UPDATE `salt_mine`
+                SET data=%s, master_id=%s WHERE minion_id=%s;'''
     else:
-        sql = '''INSERT INTO `mine_cache`
-                (`minion_id`, `data`)
-                VALUES (%s, %s)'''
+        sql = '''INSERT INTO `salt_mine`
+                (`minion_id`, `data`, `master_id`)
+                VALUES (%s, %s, %s)'''
     with _get_serv(commit=True) as cur:
         try:
-            cur.execute(sql, (minion_id, json.dumps(mine_data)))
-            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
+            cur.execute(sql, (minion_id, json.dumps(mine_data), master_id))
+            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1} and master_id: {2}'.format(minion_id, mine_data, master_id))
         except MySQLdb.IntegrityError:
             pass
 
@@ -315,15 +318,16 @@ def get_mine(minion_id, data, func=None):
     '''
 
     with _get_serv(ret=None, commit=True) as cur:
-        sql = '''SELECT `data` FROM `mine_cache` WHERE `minion_id` = %s;'''
+        sql = '''SELECT `data` FROM `salt_mine` WHERE `minion_id` = %s;'''
         cur.execute(sql, (minion_id,))
         mine_data = cur.fetchone()
         log.trace('MySQL returner fetched mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
         if mine_data:
             if func:
-                return json.load(mine_data[func])
+                return json.loads(mine_data[0][func])
             else:
-                return json.load(mine_data)
+                log.trace('MySQL get_mine deserialize raw data: {0}'.format(mine_data[0]))
+                return json.loads(mine_data[0])  # Comes back as a 1-element tuple
         return {}
 
 
