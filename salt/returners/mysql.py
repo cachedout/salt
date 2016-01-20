@@ -99,6 +99,21 @@ Use the following mysql database schema:
     KEY `tag` (`tag`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+    ---
+    --- Table structure for table `salt_mine`
+    ---
+
+    DROP TABLE IF EXISTS `salt_events`;
+    CREATE TABLE `salt_mine` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `minion_id` varchar(255) NOT NULL,
+    `data` mediumtext NOT NULL,
+    `alter_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `master_id` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `minion_id` (`minion_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 Required python modules: MySQLdb
 
 To use the mysql returner, append '--return mysql' to the salt command.
