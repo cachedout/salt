@@ -576,7 +576,6 @@ class RemoteFuncs(object):
                     fdata = self.mminion.returners[fstr](load['id'], load['fun'])
                     if fdata:
                         ret[minion] = fdata
-
             else:
                 mine = os.path.join(
                         self.opts['cachedir'],
@@ -600,19 +599,24 @@ class RemoteFuncs(object):
             if 'id' not in load or 'data' not in load:
                 return False
         if self.opts.get('minion_data_cache', False) or self.opts.get('enforce_mine_cache', False):
-            cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])
-            if not os.path.isdir(cdir):
-                os.makedirs(cdir)
-            datap = os.path.join(cdir, 'mine.p')
-            if not load.get('clear', False):
-                if os.path.isfile(datap):
-                    with salt.utils.fopen(datap, 'rb') as fp_:
-                        new = self.serial.load(fp_)
-                    if isinstance(new, dict):
-                        new.update(load['data'])
-                        load['data'] = new
-            with salt.utils.fopen(datap, 'w+b') as fp_:
-                fp_.write(self.serial.dumps(load['data']))
+            if self.opts['mine_cache']:
+                fstr = '{0}.save_mine'.format(self.opts['mine_cache'])
+                if fstr in self.mminion.returners:
+                    self.mminion.returners[fstr](load['id'], load['data'])
+            else:
+                cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])
+                if not os.path.isdir(cdir):
+                    os.makedirs(cdir)
+                datap = os.path.join(cdir, 'mine.p')
+                if not load.get('clear', False):
+                    if os.path.isfile(datap):
+                        with salt.utils.fopen(datap, 'rb') as fp_:
+                            new = self.serial.load(fp_)
+                        if isinstance(new, dict):
+                            new.update(load['data'])
+                            load['data'] = new
+                with salt.utils.fopen(datap, 'w+b') as fp_:
+                    fp_.write(self.serial.dumps(load['data']))
         return True
 
     def _mine_delete(self, load):
