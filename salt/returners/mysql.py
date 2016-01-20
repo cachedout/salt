@@ -286,6 +286,37 @@ def returner(ret):
         log.critical('Could not store return with MySQL returner. MySQL server unavailable.')
 
 
+def save_mine(minion_id, mine_data):
+    '''
+    Cache a mine for a minion
+
+    Requires that configuration be enabled via 'mine_cache: mysql'
+    settin in the Salt master configuration.
+    '''
+    with _get_serv(commit=True) as cur:
+        sql = '''INSERT INTO `mine_cache`
+                (`minion_id`, `data`)
+                VALUES (%s, %s)'''
+        try:
+            cur.execute(sql, (minion_id, json.dumps(mine_data)))
+        except MySQLdb.IntegrityError:
+            pass
+
+
+def get_mine(minion_id):
+    '''
+    Return the cached mine data for a given minion
+    '''
+
+    with _get_serv(ret=None, commit=True) as cur:
+        sql = '''SELECT `data` FROM `mine_cache` WHERE `minion_id` = %s;'''
+        cur.execute(sql, (minion_id,))
+        data = cur.fetchone()
+        if data:
+            return json.load(data[0])
+        return {}
+
+
 def event_return(events):
     '''
     Return event to mysql server
