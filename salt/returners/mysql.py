@@ -293,6 +293,9 @@ def save_mine(minion_id, mine_data):
     Requires that configuration be enabled via 'mine_cache: mysql'
     settin in the Salt master configuration.
     '''
+    cur_mine = get_mine(minion_id, mine_data['func'])
+    if cur_mine:
+        mine_data = cur_mine.update(mine_data)
     with _get_serv(commit=True) as cur:
         sql = '''INSERT INTO `mine_cache`
                 (`minion_id`, `data`)
