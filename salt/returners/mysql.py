@@ -103,7 +103,7 @@ Use the following mysql database schema:
     --- Table structure for table `salt_mine`
     ---
 
-    DROP TABLE IF EXISTS `salt_events`;
+    DROP TABLE IF EXISTS `salt_mine`;
     CREATE TABLE `salt_mine` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `minion_id` varchar(255) NOT NULL,
