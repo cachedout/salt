@@ -570,18 +570,26 @@ class RemoteFuncs(object):
                 greedy=False
                 )
         for minion in minions:
-            mine = os.path.join(
-                    self.opts['cachedir'],
-                    'minions',
-                    minion,
-                    'mine.p')
-            try:
-                with salt.utils.fopen(mine, 'rb') as fp_:
-                    fdata = self.serial.load(fp_).get(load['fun'])
+            if self.opts['mine_cache']:
+                fstr = '{0}.get_mine'.format(self.opts['mine_cache'])
+                if fstr in self.mminion.returners:
+                    fdata = self.mminion.returners[fstr](load['id'], load['fun'])
                     if fdata:
                         ret[minion] = fdata
-            except Exception:
-                continue
+
+            else:
+                mine = os.path.join(
+                        self.opts['cachedir'],
+                        'minions',
+                        minion,
+                        'mine.p')
+                try:
+                    with salt.utils.fopen(mine, 'rb') as fp_:
+                        fdata = self.serial.load(fp_).get(load['fun'])
+                        if fdata:
+                            ret[minion] = fdata
+                except Exception:
+                    continue
         return ret
 
     def _mine(self, load, skip_verify=False):

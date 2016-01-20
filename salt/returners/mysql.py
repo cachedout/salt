@@ -304,9 +304,9 @@ def save_mine(minion_id, mine_data):
             pass
 
 
-def get_mine(minion_id):
+def get_mine(minion_id, func):
     '''
-    Return the cached mine data for a given minion
+    Return the cached mine data for a function for a given minion
     '''
 
     with _get_serv(ret=None, commit=True) as cur:
@@ -315,7 +315,7 @@ def get_mine(minion_id):
         mine_data = cur.fetchone()
         log.trace('MySQL returner fetched mine data for minion [{0}] with data: {1}'.format(minion_id, mine_data))
         if mine_data:
-            return json.load(mine_data[0])
+            return json.load(mine_data[func])
         return {}
 
 
