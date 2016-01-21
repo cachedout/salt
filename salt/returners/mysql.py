@@ -298,16 +298,19 @@ def save_mine(minion_id, mine_data, master_id):
     '''
     cur_mine = get_mine(minion_id, mine_data)
     if cur_mine:
-        sql = '''UPDATE `salt_mine`
-                SET data=%s, master_id=%s WHERE minion_id=%s;'''
+        sql = '''UPDATE `salt_mine` SET `data`=%s, `master_id`=%s WHERE `minion_id`=%s'''
     else:
         sql = '''INSERT INTO `salt_mine`
                 (`minion_id`, `data`, `master_id`)
                 VALUES (%s, %s, %s)'''
     with _get_serv(commit=True) as cur:
         try:
-            cur.execute(sql, (minion_id, json.dumps(mine_data), master_id))
-            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1} and master_id: {2}'.format(minion_id, mine_data, master_id))
+            if cur_mine:
+                ret = cur.execute(sql, (json.dumps(mine_data), master_id, minion_id))
+                log.trace('ret: {0}'.format(ret))
+            else:
+                cur.execute(sql, (minion_id, json.dumps(mine_data), master_id))
+            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1} and master_id: {2} using SQL {3}'.format(minion_id, mine_data, master_id, sql))
         except MySQLdb.IntegrityError:
             pass
 
