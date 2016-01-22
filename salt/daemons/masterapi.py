@@ -606,10 +606,12 @@ class RemoteFuncs(object):
                     cur_mine = self.mminion.returners[fstr](load['id'], load['data'])  # TODO verify
                     if cur_mine:
                         cur_mine.update(load['data'])
+                    else:
+                        cur_mine = load['data']
                 fstr = '{0}.save_mine'.format(self.opts['mine_cache'])
                 if fstr in self.mminion.returners:
                     log.trace('_mine saving data via returner subsystem: {0}'.format(fstr))
-                    self.mminion.returners[fstr](load['id'], load['data'], self.opts['id'])
+                    self.mminion.returners[fstr](load['id'], cur_mine, self.opts['id'])
             else:
                 cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])
                 if not os.path.isdir(cdir):
