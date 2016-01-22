@@ -161,9 +161,11 @@ def send(func, *args, **kwargs):
         salt '*' mine.send network.ip_addrs eth0
         salt '*' mine.send eth0_ip_addrs mine_function=network.ip_addrs eth0
     '''
+    log.trace('Starting mine send')
     kwargs = salt.utils.clean_kwargs(**kwargs)
     mine_func = kwargs.pop('mine_function', func)
     if mine_func not in __salt__:
+        log.trace('Bailing out of mine send because func {0} not found'.format(func))
         return False
     data = {}
     arg_data = salt.utils.arg_lookup(__salt__[mine_func])
@@ -200,6 +202,7 @@ def send(func, *args, **kwargs):
             'data': data,
             'id': __opts__['id'],
     }
+    log.trace('Firing _mine_send')
     return _mine_send(load, __opts__)
 
 

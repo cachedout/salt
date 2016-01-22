@@ -1102,6 +1102,7 @@ class AESFuncs(object):
         :rtype: bool
         :return: True if the data has been stored in the mine
         '''
+        log.trace('salt.master _mine called')
         load = self.__verify_load(load, ('id', 'data', 'tok'))
         if load is False:
             return {}

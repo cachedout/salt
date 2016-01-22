@@ -595,6 +595,7 @@ class RemoteFuncs(object):
         '''
         Return the mine data
         '''
+        log.trace('_mine called')
         if not skip_verify:
             if 'id' not in load or 'data' not in load:
                 return False
@@ -604,9 +605,10 @@ class RemoteFuncs(object):
                 if fstr in self.mminion.returners:
                     cur_mine = self.mminion.returners[fstr](load['id'], load['data'])  # TODO verify
                     if cur_mine:
-                        load['data'].update(cur_mine)
+                        cur_mine.update(load['data'])
                 fstr = '{0}.save_mine'.format(self.opts['mine_cache'])
                 if fstr in self.mminion.returners:
+                    log.trace('_mine saving data via returner subsystem: {0}'.format(fstr))
                     self.mminion.returners[fstr](load['id'], load['data'], self.opts['id'])
             else:
                 cdir = os.path.join(self.opts['cachedir'], 'minions', load['id'])

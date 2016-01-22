@@ -108,7 +108,7 @@ Use the following mysql database schema:
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `minion_id` varchar(255) NOT NULL,
     `data` mediumtext NOT NULL,
-    `alter_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `alter_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `master_id` varchar(255) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `minion_id` (`minion_id`)
@@ -298,7 +298,7 @@ def save_mine(minion_id, mine_data, master_id):
     '''
     cur_mine = get_mine(minion_id, mine_data)
     if cur_mine:
-        sql = '''UPDATE `salt_mine` SET `data`=%s, `master_id`=%s WHERE `minion_id`=%s'''
+        sql = '''UPDATE salt_mine SET data=%s, master_id=%s WHERE minion_id=%s'''
     else:
         sql = '''INSERT INTO `salt_mine`
                 (`minion_id`, `data`, `master_id`)
@@ -310,8 +310,9 @@ def save_mine(minion_id, mine_data, master_id):
                 log.trace('ret: {0}'.format(ret))
             else:
                 cur.execute(sql, (minion_id, json.dumps(mine_data), master_id))
-            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1} and master_id: {2} using SQL {3}'.format(minion_id, mine_data, master_id, sql))
-        except MySQLdb.IntegrityError:
+            log.trace('MySQL returner stored mine data for minion [{0}] with data: {1} and master_id: {2} using SQL {3}'.format(minion_id, json.dumps(mine_data), master_id, sql))
+        except MySQLdb.IntegrityError as exc:
+            log.error('MySQL integrity error: {0}'.format(exc))
             pass
 
 
