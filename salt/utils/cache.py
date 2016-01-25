@@ -88,7 +88,6 @@ class CacheDisk(CacheDict):
 
     def __contains__(self, key):
         self._enforce_ttl_key(key)
-        log.debug('__CONTAINS__ looking for key {0} in dict {1} result: {2}'.format(key, self._dict, self._dict.__contains__(key)))
         return self._dict.__contains__(key)
 
     def __getitem__(self, key):
