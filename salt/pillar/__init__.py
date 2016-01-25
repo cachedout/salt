@@ -48,6 +48,10 @@ def get_pillar(opts, grains, minion_id, saltenv=None, ext=None, env=None, funcs=
         'remote': RemotePillar,
         'local': Pillar
     }.get(opts['file_client'], Pillar)
+    # If local pillar and we're caching, run through the cache system first
+    if opts['pillar_cache']:
+        return PillarCache(opts, grains, minion_id, saltenv, ext, functions=funcs,
+                pillar=pillar, pillarenv=pillarenv)
     return ptype(opts, grains, minion_id, saltenv, ext, functions=funcs,
                  pillar=pillar, pillarenv=pillarenv)
 
