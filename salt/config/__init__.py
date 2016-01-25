@@ -510,7 +510,7 @@ VALID_OPTS = {
     'pillar_cache': bool,
 
     # Pillar cache TTL, in seconds. Has no effect unless `pillar_cache` is True
-    'pillar_cache': int,
+    'pillar_cache_ttl': int,
 
     # Pillar cache backend. Defaults to `disk` which stores caches in the master cache
     'pillar_cache_backend': str,
