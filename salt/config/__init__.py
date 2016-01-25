@@ -506,6 +506,9 @@ VALID_OPTS = {
     # Whether or not a copy of the master opts dict should be rendered into minion pillars
     'pillar_opts': bool,
 
+    # Cache the master pillar to disk to avoid having to pass through the rendering system
+    'pillar_cache': bool,
+
     'pillar_safe_render_error': bool,
 
     # When creating a pillar, there are several strategies to choose from when
@@ -1071,6 +1074,7 @@ DEFAULT_MASTER_OPTS = {
     'pillar_safe_render_error': True,
     'pillar_source_merging_strategy': 'smart',
     'pillar_merge_lists': False,
+    'pillar_cache': False,
     'ping_on_rotate': False,
     'peer': {},
     'preserve_minion_cache': False,
