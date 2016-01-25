@@ -626,6 +626,9 @@
 # where pillar rendering time is known to be unsatisfactory and any attendent security
 # concerns about storing pillars in a master cache have been addressed.
 #
+# When enabling this feature, be certain to read through the additional pillar_cache_*
+# configuration options to fully understand the tuneable parameters and their implications.
+#
 #pillar_cache: False
 
 # If and only if a master has set `pillar_cache: True`, the cache TTL controls the amount
