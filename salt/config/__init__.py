@@ -509,6 +509,12 @@ VALID_OPTS = {
     # Cache the master pillar to disk to avoid having to pass through the rendering system
     'pillar_cache': bool,
 
+    # Pillar cache TTL, in seconds. Has no effect unless `pillar_cache` is True
+    'pillar_cache': int,
+
+    # Pillar cache backend. Defaults to `disk` which stores caches in the master cache
+    'pillar_cache_backend': str,
+
     'pillar_safe_render_error': bool,
 
     # When creating a pillar, there are several strategies to choose from when
@@ -814,6 +820,11 @@ DEFAULT_MINION_OPTS = {
     'autoload_dynamic_modules': True,
     'environment': None,
     'pillarenv': None,
+    # `pillar_cache` and `pillar_ttl`
+    # are not used on the minion but are unavoidably in the code path
+    'pillar_cache': False,
+    'pillar_cache_ttl': 3600,
+    'pillar_cache_backend': 'disk',
     'extension_modules': '',
     'state_top': 'top.sls',
     'state_top_saltenv': None,
@@ -1075,6 +1086,8 @@ DEFAULT_MASTER_OPTS = {
     'pillar_source_merging_strategy': 'smart',
     'pillar_merge_lists': False,
     'pillar_cache': False,
+    'pillar_cache_ttl': 3600,
+    'pillar_cache_backend': 'disk',
     'ping_on_rotate': False,
     'peer': {},
     'preserve_minion_cache': False,
