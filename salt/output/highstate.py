@@ -117,6 +117,9 @@ def _format_host(host, data):
             hstrs.append((u'{0}----------\n    {1}{2[ENDC]}'
                           .format(hcolor, err, colors)))
     if isinstance(data, dict):
+        if 'profile' in data:
+            profile = data['profile']
+            del data['profile']
         # Verify that the needed data is present
         for tname, info in six.iteritems(data):
             if isinstance(info, dict) and '__run_num__' not in info:
@@ -223,6 +226,8 @@ def _format_host(host, data):
                     u'    {tcolor} Started: {ret[start_time]!s}{colors[ENDC]}',
                     u'    {tcolor}Duration: {ret[duration]!s}{colors[ENDC]}',
                 ])
+                if profile:
+                    compiled_profile_data = salt.utils.profile.compile_highstate_profile(ret['profile'])
             # This isn't the prettiest way of doing this, but it's readable.
             if comps[1] != comps[2]:
                 state_lines.insert(

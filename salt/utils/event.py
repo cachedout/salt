@@ -657,6 +657,7 @@ class SaltEvent(object):
                             )  # old dup event
                             data['jid'] = load['jid']
                             data['id'] = load['id']
+                            data['profile'] = load.get('profile')
                             data['success'] = False
                             data['return'] = 'Error: {0}.{1}'.format(
                                 tags[0], tags[-1])

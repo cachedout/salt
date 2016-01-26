@@ -1090,7 +1090,8 @@ class Minion(MinionBase):
                     'retcode',
                     0
                 )
-                print('MINION INSTANCE CONTEXT: {0}'.format(minion_instance.functions.pack['__context__']))
+                if 'profile' in minion_instance.functions.pack['__context__']:
+                    ret['return']['profile'] = minion_instance.functions.pack['__context__']['profile']
                 ret['success'] = True
             except CommandNotFoundError as exc:
                 msg = 'Command required for {0!r} not found'.format(
