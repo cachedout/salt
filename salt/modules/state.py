@@ -760,7 +760,7 @@ def sls(mods,
             else:
                 high_['__exclude__'] = exclude
         ret = st_.state.call_high(high_)
-        __context__['highstate_profile'] = (ret['context'])
+        __context__['highstate_profile'] = ret['context']
         del ret['context']
     finally:
         st_.pop_active()

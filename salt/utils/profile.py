@@ -32,34 +32,34 @@ def compile_highstate_profile(profile):
     if not 'highstate_profile' in profile:
         return {}
     else:
-        ret = salt.utils.OrderedDict()
+        ret = salt.utils.odict.OrderedDict()
         # Pop the highstate_profile off and store it on its own
-        highstate_profile = profile['higstate_profile']
-        del profile['highstate_profile']
+        highstate_profile = profile['highstate_profile']
 
         # Begin ordering chunks by time.
         ordered_chunk_keys = sorted(profile['highstate_profile'], key=profile['highstate_profile'].get)
+        del profile['highstate_profile']
 
         chunk_index = 0
         for chunk in ordered_chunk_keys:
             # Look forward one chunk to know where to end
-            if len(ordered_chunk_keys) > chunk_index:
+            if len(ordered_chunk_keys) > chunk_index + 1:
                 next_chunk = ordered_chunk_keys[chunk_index]
                 # OK, we have our current chunk and a forward-looking chunk!
                 # Now, let's look for some timings that match.
                 for func in profile:
-                    if profile['func'] > highstate_profile[chunk] and profile['func'] < highstate_profile[next_chunk]:
+                    if profile[func] > highstate_profile[chunk] and profile[func] < highstate_profile[next_chunk]:
                         # A call belongs to this chunk!
                         # If we don't already have a tracking dict, make one:
                         if highstate_profile[chunk] not in ret:
-                            ret[highstate_profile[chunk]] = salt.utils.odict.OrderdDict()
+                            ret[chunk] = salt.utils.odict.OrderdDict()
                         else:
-                            ret[highstate_profile[chunk]].update(profile['func']) 
+                            ret[chunk].update(profile['func']) 
                         # It can't belong to anything else, remove it.
                         del profile['func']
                         del highstate_profile[chunk]
             else:
                 # Otherwise, we are at the last chunk.
                 # All remaining calls should belong here.
-                ret[highstate_profile[chunk]].update(profile)
+                ret[chunk] = profile
         return ret

@@ -70,6 +70,7 @@ import textwrap
 # Import salt libs
 import salt.utils
 import salt.output
+import salt.utils.profile
 from salt.utils.locales import sdecode
 
 # Import 3rd-party libs
@@ -227,7 +228,11 @@ def _format_host(host, data):
                     u'    {tcolor}Duration: {ret[duration]!s}{colors[ENDC]}',
                 ])
                 if profile:
-                    compiled_profile_data = salt.utils.profile.compile_highstate_profile(ret['profile'])
+                    compiled_profile_data = str(salt.utils.profile.compile_highstate_profile(profile))
+                    print(compiled_profile_data)
+                    state_lines.extend([
+                        u'  {tcolor} Profile: {compiled_profile_data}{colors[ENDC]}',
+                        ])
             # This isn't the prettiest way of doing this, but it's readable.
             if comps[1] != comps[2]:
                 state_lines.insert(
