@@ -715,13 +715,18 @@ def sls(mods,
             __opts__['cachedir'],
             '{0}.cache.p'.format(kwargs.get('cache_name', 'highstate'))
             )
-
+    if opts.get('state_output_profile'):
+        __context__['highstate_profile'] = {}
+        context = __context__['highstate_profile']
+    else:
+        context = __context__
     try:
         st_ = salt.state.HighState(opts,
                                    pillar,
                                    kwargs.get('__pub_jid'),
                                    proxy=__proxy__,
-                                   mocked=kwargs.get('mock', False))
+                                   mocked=kwargs.get('mock', False),
+                                   context=context)
     except NameError:
         st_ = salt.state.HighState(opts,
                                    pillar,
@@ -755,6 +760,8 @@ def sls(mods,
             else:
                 high_['__exclude__'] = exclude
         ret = st_.state.call_high(high_)
+        __context__['highstate_profile'] = (ret['context'])
+        del ret['context']
     finally:
         st_.pop_active()
     if __salt__['config.option']('state_data', '') == 'terse' or kwargs.get('terse'):

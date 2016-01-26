@@ -898,6 +898,10 @@ class LazyLoader(salt.utils.lazy.LazyDict):
         to last-minute inject globals
         '''
         func = super(LazyLoader, self).__getitem__(item)
+        if '__context__' in self.pack and self.opts.get('state_output_profile'):
+            if 'profile' not in self.pack['__context__']:
+                self.pack['__context__']['profile'] = {}
+            self.pack['__context__']['profile'][item] = time.time()
         if self.inject_globals:
             return global_injector_decorator(self.inject_globals)(func)
         else:

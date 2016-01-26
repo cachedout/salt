@@ -23,6 +23,7 @@ import logging
 import datetime
 import traceback
 import re
+import time
 
 # Import salt libs
 import salt.utils
@@ -618,7 +619,7 @@ class State(object):
     '''
     Class used to execute salt states
     '''
-    def __init__(self, opts, pillar=None, jid=None, proxy=None, mocked=False):
+    def __init__(self, opts, pillar=None, jid=None, proxy=None, mocked=False, context=None):
         if 'grains' not in opts:
             opts['grains'] = salt.loader.grains(opts)
         self.opts = opts
@@ -635,6 +636,7 @@ class State(object):
         self.instance_id = str(id(self))
         self.inject_globals = {}
         self.mocked = mocked
+        self.context = context
 
     def _gather_pillar(self):
         '''
@@ -1852,6 +1854,7 @@ class State(object):
         Check if a chunk has any requires, execute the requires and then
         the chunk
         '''
+        self.context[low['name']] = time.time()
         low = self._mod_aggregate(low, running, chunks)
         self._mod_init(low)
         tag = _gen_tag(low)
@@ -2172,6 +2175,7 @@ class State(object):
                 )
         _cleanup_accumulator_data()
 
+        ret['context'] = self.context
         return ret
 
     def render_template(self, high, template):
@@ -3193,11 +3197,11 @@ class HighState(BaseHighState):
     # a stack of active HighState objects during a state.highstate run
     stack = []
 
-    def __init__(self, opts, pillar=None, jid=None, proxy=None, mocked=False):
+    def __init__(self, opts, pillar=None, jid=None, proxy=None, mocked=False, context=None):
         self.opts = opts
         self.client = salt.fileclient.get_file_client(self.opts)
         BaseHighState.__init__(self, opts)
-        self.state = State(self.opts, pillar, jid, proxy=proxy, mocked=mocked)
+        self.state = State(self.opts, pillar, jid, proxy=proxy, mocked=mocked, context=context)
         self.matcher = salt.minion.Matcher(self.opts)
 
         # tracks all pydsl state declarations globally across sls files
