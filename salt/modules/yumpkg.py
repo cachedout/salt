@@ -21,6 +21,7 @@ Support for YUM/DNF
 # Import python libs
 from __future__ import absolute_import
 import copy
+import itertools
 import logging
 import os
 import re
@@ -48,6 +49,7 @@ except ImportError:
 
 # Import salt libs
 import salt.utils
+import salt.utils.itertools
 import salt.utils.decorators as decorators
 import salt.utils.pkg.rpm
 from salt.exceptions import (
@@ -157,6 +159,40 @@ def _check_repoquery():
                 __context__[contextkey] = True
             else:
                 raise CommandExecutionError('Unable to install yum-utils')
+
+
+def _yum_pkginfo(output):
+    '''
+    Parse yum/dnf output (which could contain irregular line breaks if package
+    names are long) retrieving the name, version, etc., and return a list of
+    pkginfo namedtuples.
+    '''
+    ret = []
+    cur = {}
+    keys = itertools.cycle(('name', 'version', 'repoid'))
+    values = salt.utils.itertools.split(output)
+    osarch = __grains__['osarch']
+    for (key, value) in zip(keys, values):
+        if key == 'name':
+            try:
+                cur['name'], cur['arch'] = value.rsplit('.', 1)
+            except ValueError:
+                cur['name'] = value
+                cur['arch'] = osarch
+            cur['name'] = salt.utils.pkg.rpm.resolve_name(cur['name'],
+                                                          cur['arch'],
+                                                          osarch)
+        else:
+            cur[key] = value
+            if key == 'repoid':
+                # We're done with this package, create the pkginfo namedtuple
+                # and add it to the return data.
+                pkginfo = salt.utils.pkg.rpm.pkginfo(**cur)
+                if pkginfo is not None:
+                    ret.append(pkginfo)
+                # Clear the dict for the next package
+                cur = {}
+    return ret
 
 
 def _check_versionlock():
@@ -460,18 +496,13 @@ def latest_version(*names, **kwargs):
     # Initialize the return dict with empty strings, and populate namearch_map.
     # namearch_map will provide a means of distinguishing between multiple
     # matches for the same package name, for example a target of 'glibc' on an
-    # x86_64 arch would return both x86_64 and i686 versions when searched
-    # using repoquery:
-    #
-    # $ repoquery --all --pkgnarrow=available glibc
-    # glibc-0:2.12-1.132.el6.i686
-    # glibc-0:2.12-1.132.el6.x86_64
+    # x86_64 arch would return both x86_64 and i686 versions.
     #
     # Note that the logic in the for loop below would place the osarch into the
     # map for noarch packages, but those cases are accounted for when iterating
-    # through the repoquery results later on. If the repoquery match for that
-    # package is a noarch, then the package is assumed to be noarch, and the
-    # namearch_map is ignored.
+    # through the 'yum list' results later on. If the match for that package is
+    # a noarch, then the package is assumed to be noarch, and the namearch_map
+    # is ignored.
     ret = {}
     namearch_map = {}
     for name in names:
@@ -491,61 +522,52 @@ def latest_version(*names, **kwargs):
     if refresh:
         refresh_db(**kwargs)
 
-    def _query_pkgs(name, pkgs):
-        '''
-        Return the newest available match from the _repoquery_pkginfo() output
-        '''
-        matches = []
-        for pkg in (x for x in pkgs if x.name == name):
+    # Get available versions for specified package(s)
+    cmd = [_yum(), '--quiet']
+    cmd.extend(repo_arg)
+    cmd.extend(exclude_arg)
+    cmd.extend(['list', 'available'])
+    cmd.extend(names)
+    out = __salt__['cmd.run_all'](cmd,
+                                  output_loglevel='trace',
+                                  ignore_retcode=True,
+                                  python_shell=False)
+    if out['retcode'] != 0:
+        if out['stderr']:
+            # Check first if this is just a matter of the packages being
+            # up-to-date.
+            cur_pkgs = list_pkgs()
+            if not all([x in cur_pkgs for x in names]):
+                log.error(
+                    'Problem encountered getting latest version for the '
+                    'following package(s): {0}. Stderr follows: \n{1}'.format(
+                        ', '.join(names),
+                        out['stderr']
+                    )
+                )
+        updates = []
+    else:
+        # Find end of first line so we can skip it
+        header_end = out['stdout'].find('\n')
+        if header_end == -1:
+            updates = []
+        else:
+            # Sort by version number (highest to lowest) for loop below
+            updates = sorted(
+                _yum_pkginfo(out['stdout'][header_end + 1:]),
+                key=lambda pkginfo: _LooseVersion(pkginfo.version),
+                reverse=True
+            )
+
+    for name in names:
+        for pkg in (x for x in updates if x.name == name):
             if pkg.arch == 'noarch' or pkg.arch == namearch_map[name] \
                     or salt.utils.pkg.rpm.check_32(pkg.arch):
-                matches.append(pkg.version)
-        sorted_matches = sorted(
-            [_LooseVersion(x) for x in matches],
-            reverse=True
-        )
-        try:
-            return sorted_matches[0].vstring
-        except IndexError:
-            return None
-
-    if _yum() == 'dnf':
-        avail_pkgs = _repoquery_pkginfo(
-            '{0} --available {1}'.format(repo_arg, ' '.join(names))
-        )
-        # When using 'dnf repoquery --available', all available versions are
-        # returned, irrespective of whether or not they are installed. This is
-        # different from how yum-utils' version of repoquery works.
-        all_pkgs = list_pkgs(versions_as_list=True)
-        for name in names:
-            # Get newest available version of package
-            newest_avail = _query_pkgs(name, avail_pkgs)
-            if newest_avail is None:
-                # No matches, no need to check if pacakge is already installed
-                continue
-            # Get newest installed version of package
-            try:
-                cver = all_pkgs.get(name, [])[-1]
-            except IndexError:
-                cver = None
-            if cver is None \
-                    or salt.utils.compare_versions(ver1=newest_avail,
-                                                   oper='>',
-                                                   ver2=cver,
-                                                   cmp_func=version_cmp):
-                ret[name] = newest_avail
-    else:
-        avail_pkgs = _repoquery_pkginfo(
-            '{0} {1} --pkgnarrow=available {2}'.format(
-                repo_arg,
-                exclude_arg,
-                ' '.join(names)
-            )
-        )
-        for name in names:
-            newest_avail = _query_pkgs(name, avail_pkgs)
-            if newest_avail is not None:
-                ret[name] = newest_avail
+                ret[name] = pkg.version
+                # no need to check another match, if there was one
+                break
+        else:
+            ret[name] = ''
 
     # Return a string if only one package name passed
     if len(names) == 1:
