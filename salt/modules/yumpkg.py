@@ -16,6 +16,7 @@ Support for YUM
 # Import python libs
 from __future__ import absolute_import
 import copy
+import itertools
 import logging
 import os
 import re
@@ -43,6 +44,7 @@ except ImportError:
 
 # Import salt libs
 import salt.utils
+import salt.utils.itertools
 import salt.utils.decorators as decorators
 import salt.utils.pkg.rpm
 from salt.exceptions import (
@@ -116,6 +118,40 @@ def _check_repoquery():
         # Check again now that we've installed yum-utils
         if not salt.utils.which('repoquery'):
             raise CommandExecutionError('Unable to install yum-utils')
+
+
+def _yum_pkginfo(output):
+    '''
+    Parse yum/dnf output (which could contain irregular line breaks if package
+    names are long) retrieving the name, version, etc., and return a list of
+    pkginfo namedtuples.
+    '''
+    ret = []
+    cur = {}
+    keys = itertools.cycle(('name', 'version', 'repoid'))
+    values = salt.utils.itertools.split(output)
+    osarch = __grains__['osarch']
+    for (key, value) in zip(keys, values):
+        if key == 'name':
+            try:
+                cur['name'], cur['arch'] = value.rsplit('.', 1)
+            except ValueError:
+                cur['name'] = value
+                cur['arch'] = osarch
+            cur['name'] = salt.utils.pkg.rpm.resolve_name(cur['name'],
+                                                          cur['arch'],
+                                                          osarch)
+        else:
+            cur[key] = value
+            if key == 'repoid':
+                # We're done with this package, create the pkginfo namedtuple
+                # and add it to the return data.
+                pkginfo = salt.utils.pkg.rpm.pkginfo(**cur)
+                if pkginfo is not None:
+                    ret.append(pkginfo)
+                # Clear the dict for the next package
+                cur = {}
+    return ret
 
 
 def _repoquery(repoquery_args,
@@ -392,18 +428,13 @@ def latest_version(*names, **kwargs):
     # Initialize the return dict with empty strings, and populate namearch_map.
     # namearch_map will provide a means of distinguishing between multiple
     # matches for the same package name, for example a target of 'glibc' on an
-    # x86_64 arch would return both x86_64 and i686 versions when searched
-    # using repoquery:
-    #
-    # $ repoquery --all --pkgnarrow=available glibc
-    # glibc-0:2.12-1.132.el6.i686
-    # glibc-0:2.12-1.132.el6.x86_64
+    # x86_64 arch would return both x86_64 and i686 versions.
     #
     # Note that the logic in the for loop below would place the osarch into the
     # map for noarch packages, but those cases are accounted for when iterating
-    # through the repoquery results later on. If the repoquery match for that
-    # package is a noarch, then the package is assumed to be noarch, and the
-    # namearch_map is ignored.
+    # through the 'yum list' results later on. If the match for that package is
+    # a noarch, then the package is assumed to be noarch, and the namearch_map
+    # is ignored.
     ret = {}
     namearch_map = {}
     for name in names:
@@ -423,16 +454,42 @@ def latest_version(*names, **kwargs):
     if refresh:
         refresh_db(**kwargs)
 
-    # Get updates for specified package(s)
-    # Sort by version number (highest to lowest) for loop below
-    updates = sorted(
-        _repoquery_pkginfo(
-            '{0} {1} --pkgnarrow=available {2}'
-            .format(repo_arg, exclude_arg, ' '.join(names))
-        ),
-        key=lambda pkginfo: _LooseVersion(pkginfo.version),
-        reverse=True
-    )
+    # Get available versions for specified package(s)
+    cmd = [_yum(), '--quiet']
+    cmd.extend(repo_arg)
+    cmd.extend(exclude_arg)
+    cmd.extend(['list', 'available'])
+    cmd.extend(names)
+    out = __salt__['cmd.run_all'](cmd,
+                                  output_loglevel='trace',
+                                  ignore_retcode=True,
+                                  python_shell=False)
+    if out['retcode'] != 0:
+        if out['stderr']:
+            # Check first if this is just a matter of the packages being
+            # up-to-date.
+            cur_pkgs = list_pkgs()
+            if not all([x in cur_pkgs for x in names]):
+                log.error(
+                    'Problem encountered getting latest version for the '
+                    'following package(s): {0}. Stderr follows: \n{1}'.format(
+                        ', '.join(names),
+                        out['stderr']
+                    )
+                )
+        updates = []
+    else:
+        # Find end of first line so we can skip it
+        header_end = out['stdout'].find('\n')
+        if header_end == -1:
+            updates = []
+        else:
+            # Sort by version number (highest to lowest) for loop below
+            updates = sorted(
+                _yum_pkginfo(out['stdout'][header_end + 1:]),
+                key=lambda pkginfo: _LooseVersion(pkginfo.version),
+                reverse=True
+            )
 
     for name in names:
         for pkg in (x for x in updates if x.name == name):
@@ -441,6 +498,8 @@ def latest_version(*names, **kwargs):
                 ret[name] = pkg.version
                 # no need to check another match, if there was one
                 break
+        else:
+            ret[name] = ''
 
     # Return a string if only one package name passed
     if len(names) == 1:

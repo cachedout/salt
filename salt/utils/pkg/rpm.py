@@ -5,6 +5,7 @@ Common
 
 # Import python libs
 from __future__ import absolute_import
+import collections
 import logging
 
 # Import salt libs
@@ -55,33 +56,44 @@ def check_32(arch, osarch=None):
     return all(x in ARCHES_32 for x in (osarch, arch))
 
 
-def parse_pkginfo(line, osarch=None):
+def pkginfo(name, version, arch, repoid):
     '''
-    A small helper to parse an rpm/repoquery command's output. Returns a
-    namedtuple
+    Build and return a pkginfo namedtuple
     '''
-    # Importing `collections` here since this function is re-namespaced into
-    # another module
-    import collections
-    pkginfo = collections.namedtuple(
+    pkginfo_tuple = collections.namedtuple(
         'PkgInfo',
         ('name', 'version', 'arch', 'repoid')
     )
+    return pkginfo_tuple(name, version, arch, repoid)
 
+
+def resolve_name(name, arch, osarch=None):
+    '''
+    Resolve the package name and arch into a unique name referred to by salt.
+    For example, on a 64-bit OS, a 32-bit package will be pkgname.i386.
+    '''
+    if osarch is None:
+        osarch = get_osarch()
+
+    if not check_32(arch, osarch) and arch not in (osarch, 'noarch'):
+        name += '.{0}'.format(arch)
+    return name
+
+
+def parse_pkginfo(line, osarch=None):
+    '''
+    A small helper to parse an rpm/repoquery command's output. Returns a
+    pkginfo namedtuple.
+    '''
     try:
-        name, pkg_version, release, arch, repoid = line.split('_|-')
+        name, version, release, arch, repoid = line.split('_|-')
     # Handle unpack errors (should never happen with the queryformat we are
     # using, but can't hurt to be careful).
     except ValueError:
         return None
 
-    if osarch is None:
-        osarch = _osarch()
-
-    if not check_32(arch, osarch):
-        if arch not in (osarch, 'noarch'):
-            name += '.{0}'.format(arch)
+    name = resolve_name(name, arch, osarch)
     if release:
-        pkg_version += '-{0}'.format(release)
+        version += '-{0}'.format(release)
 
-    return pkginfo(name, pkg_version, arch, repoid)
+    return pkginfo(name, version, arch, repoid)
