@@ -6,6 +6,12 @@ Utility functions for salt profiling
 import logging
 import salt.utils.odict
 
+try:
+    import json
+    HAS_JSON = True
+except ImportError:
+    HAS_JSON = False
+
 log = logging.getLogger(__name__)
 
 def compile_highstate_profile(profile):
@@ -65,13 +71,21 @@ def compile_highstate_profile(profile):
 
                 # Generate ordered dict from ordered keys
                 ordered_profile_dict = salt.utils.odict.OrderedDict()
+                delta_dict = salt.utils.odict.OrderedDict()
+
                 for profile_key in ordered_profile_keys:
                     ordered_profile_dict[profile_key] = profile[profile_key]
 
-                import pudb; pu.db
                 for func in ordered_profile_dict:
-                    ordered_profile_dict[func] = ordered_profile_dict.__next__() - ordered_profile_dict[func]
+                    link_prev, link_next, key = ordered_profile_dict._OrderedDict__map[func]
+                    try:
+                        time_delta = (ordered_profile_dict[link_next[2]] * 1000) - (ordered_profile_dict[func] * 1000)
+                        delta_dict[func] = '{0} ms'.format(time_delta)
+                    except KeyError:
+                        delta_dict[func] = 'Unknown'
 
                 ret[chunk] = ordered_profile_dict
-
-        return ret
+        if HAS_JSON:
+            return json.dumps(ret, indent=4)
+        else:
+            return ret
