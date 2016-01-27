@@ -228,10 +228,8 @@ def _format_host(host, data):
                     u'    {tcolor}Duration: {ret[duration]!s}{colors[ENDC]}',
                 ])
                 if profile:
-                    compiled_profile_data = str(salt.utils.profile.compile_highstate_profile(profile))
-                    print(compiled_profile_data)
                     state_lines.extend([
-                        u'  {tcolor} Profile: {compiled_profile_data}{colors[ENDC]}',
+                        u'    {tcolor}Profile: {profile}{colors[ENDC]}',
                         ])
             # This isn't the prettiest way of doing this, but it's readable.
             if comps[1] != comps[2]:
@@ -274,13 +272,19 @@ def _format_host(host, data):
                 ret.setdefault(detail, u'')
             if ret['duration'] != '':
                 ret['duration'] = u'{0} ms'.format(ret['duration'])
+            if profile:
+                compiled_profile_data = salt.utils.profile.compile_highstate_profile(profile)
+                #for chunk in compiled_profile_data:
+                #    profile_out += chunk
+                #print(profile_out)
             svars = {
                 'tcolor': tcolor,
                 'comps': comps,
                 'ret': ret,
                 'comment': sdecode(comment),
                 # This nukes any trailing \n and indents the others.
-                'colors': colors
+                'colors': colors,
+                'profile': compiled_profile_data
             }
             hstrs.extend([sline.format(**svars) for sline in state_lines])
             changes = u'     Changes:   ' + ctext

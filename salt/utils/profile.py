@@ -39,6 +39,7 @@ def compile_highstate_profile(profile):
         # Begin ordering chunks by time.
         ordered_chunk_keys = sorted(profile['highstate_profile'], key=profile['highstate_profile'].get)
         del profile['highstate_profile']
+        ordered_profile_keys = sorted(profile, key=profile.get)
 
         chunk_index = 0
         for chunk in ordered_chunk_keys:
@@ -47,19 +48,30 @@ def compile_highstate_profile(profile):
                 next_chunk = ordered_chunk_keys[chunk_index]
                 # OK, we have our current chunk and a forward-looking chunk!
                 # Now, let's look for some timings that match.
-                for func in profile:
+                for func in ordered_profile_keys:
                     if profile[func] > highstate_profile[chunk] and profile[func] < highstate_profile[next_chunk]:
                         # A call belongs to this chunk!
                         # If we don't already have a tracking dict, make one:
                         if highstate_profile[chunk] not in ret:
                             ret[chunk] = salt.utils.odict.OrderdDict()
                         else:
-                            ret[chunk].update(profile['func']) 
+                            ret[chunk].update(profile[func]) 
                         # It can't belong to anything else, remove it.
-                        del profile['func']
+                        del profile[func]
                         del highstate_profile[chunk]
             else:
                 # Otherwise, we are at the last chunk.
                 # All remaining calls should belong here.
-                ret[chunk] = profile
+
+                # Generate ordered dict from ordered keys
+                ordered_profile_dict = salt.utils.odict.OrderedDict()
+                for profile_key in ordered_profile_keys:
+                    ordered_profile_dict[profile_key] = profile[profile_key]
+
+                import pudb; pu.db
+                for func in ordered_profile_dict:
+                    ordered_profile_dict[func] = ordered_profile_dict.__next__() - ordered_profile_dict[func]
+
+                ret[chunk] = ordered_profile_dict
+
         return ret
