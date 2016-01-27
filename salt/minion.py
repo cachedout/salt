@@ -1091,9 +1091,12 @@ class Minion(MinionBase):
                     0
                 )
                 if 'profile' in minion_instance.functions.pack['__context__']:
-                    ret['return']['profile'] = minion_instance.functions.pack['__context__']['profile']
-                    if 'highstate_profile' in minion_instance.functions.pack['__context__']:
-                        ret['return']['profile']['highstate_profile'] = minion_instance.functions.pack['__context__']['highstate_profile']
+                    try:
+                        ret['return']['profile'] = minion_instance.functions.pack['__context__']['profile']
+                        if 'highstate_profile' in minion_instance.functions.pack['__context__']:
+                            ret['return']['profile']['highstate_profile'] = minion_instance.functions.pack['__context__']['highstate_profile']
+                    except TypeError:  # An error may have occured during execution
+                        pass
                 ret['success'] = True
             except CommandNotFoundError as exc:
                 msg = 'Command required for {0!r} not found'.format(
