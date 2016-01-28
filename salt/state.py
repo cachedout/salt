@@ -626,7 +626,7 @@ class State(object):
         self.proxy = proxy
         self._pillar_override = pillar
         self.opts['pillar'] = self._gather_pillar()
-        self.state_con = {}
+        self.state_con = context or {}
         self.load_modules(proxy=proxy)
         self.active = set()
         self.mod_init = set()
@@ -765,7 +765,7 @@ class State(object):
         '''
         Load the modules into the state
         '''
-        log.info('Loading fresh modules for state activity')
+        log.info('Loading fresh modules for state activity. Using state context: {0}'.format(self.state_con))
         self.utils = salt.loader.utils(self.opts)
         self.functions = salt.loader.minion_mods(self.opts, self.state_con,
                                                  utils=self.utils,
@@ -2175,7 +2175,8 @@ class State(object):
                 )
         _cleanup_accumulator_data()
 
-        ret['context'] = self.context
+        ret['highstate_context'] = self.context
+        ret['highstate_loader_context'] = self.functions.pack['__context__']
         return ret
 
     def render_template(self, high, template):

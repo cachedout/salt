@@ -49,7 +49,6 @@ def compile_highstate_profile(profile):
         chunk_index = 0
         for chunk in ordered_chunk_keys:
             # Look forward one chunk to know where to end
-            import pudb; pu.db
             if len(ordered_chunk_keys) > chunk_index + 1:
                 next_chunk = ordered_chunk_keys[chunk_index]
                 # OK, we have our current chunk and a forward-looking chunk!

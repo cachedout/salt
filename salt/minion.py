@@ -1092,10 +1092,12 @@ class Minion(MinionBase):
                 )
                 if 'profile' in minion_instance.functions.pack['__context__']:
                     try:
-                        ret['return']['profile'] = minion_instance.functions.pack['__context__']['profile']
+                        ret['return']['profile'] = copy.deepcopy(minion_instance.functions.pack['__context__']['profile'])
+                        log.debug('Packing profile {0} for pid {1}'.format(ret['return']['profile'], os.getpid()))
                         if 'highstate_profile' in minion_instance.functions.pack['__context__']:
                             ret['return']['profile']['highstate_profile'] = minion_instance.functions.pack['__context__']['highstate_profile']
                     except TypeError:  # An error may have occured during execution
+                        log.debug('TypeError when packing profile context')
                         pass
                 ret['success'] = True
             except CommandNotFoundError as exc:
