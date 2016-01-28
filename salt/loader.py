@@ -847,6 +847,9 @@ class LazyLoader(salt.utils.lazy.LazyDict):
         - move modules_max_memory into here
         - singletons (per tag)
     '''
+
+    loader_profiler = {}
+
     def __init__(self,
                  module_dirs,
                  opts=None,
@@ -900,12 +903,13 @@ class LazyLoader(salt.utils.lazy.LazyDict):
         func = super(LazyLoader, self).__getitem__(item)
         if '__context__' in self.pack and self.opts.get('state_output_profile'):
             if 'profile' not in self.pack['__context__']:
-                import traceback; traceback.print_stack()
-                log.debug('WARNING WARNING WARNING RESET PROFILE CONTEXT')
+#                import traceback; traceback.print_stack()
+#                log.debug('WARNING WARNING WARNING RESET PROFILE CONTEXT')
                 self.pack['__context__']['profile'] = {}
-            self.pack['__context__']['profile'][item] = time.time()
-            log.debug('Packed profile context with func: {0}'.format(item))
-            log.debug('Current profile contents: {0} for pid {1}'.format(self.pack['__context__']['profile'].keys(), os.getpid()))
+#            self.pack['__context__']['profile'][item] = time.time()
+#            log.debug('Packed profile context with func: {0}'.format(item))
+#            log.debug('Current profile contents: {0} for pid {1}'.format(self.pack['__context__']['profile'].keys(), os.getpid()))
+        LazyLoader.loader_profiler[item] = time.time()
         if self.inject_globals:
             return global_injector_decorator(self.inject_globals)(func)
         else:

@@ -1090,15 +1090,24 @@ class Minion(MinionBase):
                     'retcode',
                     0
                 )
-                if 'profile' in minion_instance.functions.pack['__context__']:
-                    try:
-                        ret['return']['profile'] = copy.deepcopy(minion_instance.functions.pack['__context__']['profile'])
-                        log.debug('Packing profile {0} for pid {1}'.format(ret['return']['profile'], os.getpid()))
-                        if 'highstate_profile' in minion_instance.functions.pack['__context__']:
-                            ret['return']['profile']['highstate_profile'] = minion_instance.functions.pack['__context__']['highstate_profile']
-                    except TypeError:  # An error may have occured during execution
-                        log.debug('TypeError when packing profile context')
-                        pass
+#                if 'profile' in minion_instance.functions.pack['__context__']:
+#                    try:
+#                        ret['return']['profile'] = copy.deepcopy(minion_instance.functions.pack['__context__']['profile'])
+#                        log.debug('Packing profile {0} for pid {1}'.format(ret['return']['profile'], os.getpid()))
+                if 'profile' not in ret['return']:
+                    ret['return']['profile'] = {}
+#                    except TypeError:  # An error may have occured during execution
+#
+#                        log.debug('TypeError when packing profile context')
+#                        pass
+
+                ret['return']['profile'] = salt.loader.LazyLoader.loader_profiler
+                ret['return']['profile']['highstate_profile'] = minion_instance.functions.pack['__context__']['highstate_profile']
+
+                print('MINION PROFILE: {0}'.format(ret['return']['profile']))
+                print('MINION FUNC CONTEXT: {0}'.format(minion_instance.functions.pack['__context__']['highstate_profile']))
+                print('HIGHSTATE PROFILE: {0}'.format(ret['return']['profile']['highstate_profile']))
+
                 ret['success'] = True
             except CommandNotFoundError as exc:
                 msg = 'Command required for {0!r} not found'.format(

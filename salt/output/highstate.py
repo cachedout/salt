@@ -121,6 +121,7 @@ def _format_host(host, data):
         if 'profile' in data:
             profile = data['profile']
             del data['profile']
+            del data['highstate_loader_context']
         # Verify that the needed data is present
         for tname, info in six.iteritems(data):
             if isinstance(info, dict) and '__run_num__' not in info:

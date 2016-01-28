@@ -626,7 +626,7 @@ class State(object):
         self.proxy = proxy
         self._pillar_override = pillar
         self.opts['pillar'] = self._gather_pillar()
-        self.state_con = context or {}
+        self.state_con = {}
         self.load_modules(proxy=proxy)
         self.active = set()
         self.mod_init = set()

@@ -761,9 +761,8 @@ def sls(mods,
                 high_['__exclude__'] = exclude
         ret = st_.state.call_high(high_)
         __context__['highstate_profile'] = ret['highstate_context']
-        __context__['highstate_loader_profile'] = ret['highstate_loader_context']
+        print('SLS PROFILE: {0}'.format(ret['highstate_context']))
         del ret['highstate_context']
-        del ret['highstate_loader_context']
     finally:
         st_.pop_active()
     if __salt__['config.option']('state_data', '') == 'terse' or kwargs.get('terse'):
