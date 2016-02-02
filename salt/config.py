@@ -38,6 +38,7 @@ import salt.utils.validate.path
 import salt.utils.xdg
 import salt.exceptions
 import salt.utils.sdb
+from salt.utils.locales import sdecode
 
 log = logging.getLogger(__name__)
 
@@ -499,6 +500,15 @@ VALID_OPTS = {
     # Whether or not a copy of the master opts dict should be rendered into minion pillars
     'pillar_opts': bool,
 
+    # Cache the master pillar to disk to avoid having to pass through the rendering system
+    'pillar_cache': bool,
+
+    # Pillar cache TTL, in seconds. Has no effect unless `pillar_cache` is True
+    'pillar_cache_ttl': int,
+
+    # Pillar cache backend. Defaults to `disk` which stores caches in the master cache
+    'pillar_cache_backend': str,
+
     'pillar_safe_render_error': bool,
 
     # When creating a pillar, there are several strategies to choose from when
@@ -800,6 +810,11 @@ DEFAULT_MINION_OPTS = {
     'autoload_dynamic_modules': True,
     'environment': None,
     'pillarenv': None,
+    # `pillar_cache` and `pillar_ttl`
+    # are not used on the minion but are unavoidably in the code path
+    'pillar_cache': False,
+    'pillar_cache_ttl': 3600,
+    'pillar_cache_backend': 'disk',
     'extension_modules': '',
     'state_top': 'top.sls',
     'state_top_saltenv': None,
@@ -1060,6 +1075,9 @@ DEFAULT_MASTER_OPTS = {
     'pillar_safe_render_error': True,
     'pillar_source_merging_strategy': 'smart',
     'pillar_merge_lists': False,
+    'pillar_cache': False,
+    'pillar_cache_ttl': 3600,
+    'pillar_cache_backend': 'disk',
     'ping_on_rotate': False,
     'peer': {},
     'preserve_minion_cache': False,
@@ -1411,7 +1429,10 @@ def _read_conf_file(path):
             conf_opts = {}
         # allow using numeric ids: convert int to string
         if 'id' in conf_opts:
-            conf_opts['id'] = str(conf_opts['id'])
+            if not isinstance(conf_opts['id'], six.string_types):
+                conf_opts['id'] = str(conf_opts['id'])
+            else:
+                conf_opts['id'] = sdecode(conf_opts['id'])
         for key, value in six.iteritems(conf_opts.copy()):
             if isinstance(value, text_type) and six.PY2:
                 # We do not want unicode settings
