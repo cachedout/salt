@@ -49,7 +49,6 @@ class CacheDict(dict):
     def __init__(self, ttl, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self._ttl = ttl
-
         self._key_cache_time = {}
 
     def _enforce_ttl_key(self, key):
