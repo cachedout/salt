@@ -48,7 +48,9 @@ class CacheDict(dict):
     '''
     def __init__(self, ttl, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
+        log.trace('SETTING TTL in cachedict to: {0}'.format(ttl))
         self._ttl = ttl
+
         self._key_cache_time = {}
 
     def _enforce_ttl_key(self, key):
@@ -90,6 +92,18 @@ class CacheDisk(CacheDict):
         super(CacheDisk, self).__init__(ttl, *args, **kwargs)
         self._path = path
         self._dict = self._read()
+        if not 'cache_data' in self._dict:
+            self._dict['cache_data'] = {}
+
+    def _enforce_ttl_key(self, key):
+        '''
+        Enforce the TTL to a specific key, delete if its past TTL
+        '''
+        if key not in self._dict['cache_data']:
+            return
+        if time.time() - self._dict['cache_data'][key] > self._ttl:
+            del self._dict['cache_data'][key]
+            dict.__delitem__(self._dict, key)
 
     def __contains__(self, key):
         self._enforce_ttl_key(key)
@@ -109,6 +123,7 @@ class CacheDisk(CacheDict):
         self._key_cache_time[key] = time.time()
         self._dict.__setitem__(key, val)
         # Do the same as the parent but also persist
+        self._dict['cache_data'][key] = time.time()
         self._write()
 
     def _read(self):
