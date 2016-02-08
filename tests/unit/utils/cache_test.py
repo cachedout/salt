@@ -8,9 +8,11 @@
 
 # Import python libs
 from __future__ import absolute_import
+import os
 import time
 
 # Import Salt Testing libs
+import integration
 from salttesting import TestCase
 from salttesting.helpers import ensure_in_syspath
 ensure_in_syspath('../../')
@@ -24,7 +26,8 @@ class CacheDiskTestCase(TestCase):
         '''
         Make sure you can instantiate etc.
         '''
-        cd = cache.CacheDisk(5)
+        import pudb; pu.db
+        cd = cache.CacheDisk(5, os.path.join(integration.TMP, 'cache_test'))
         self.assertIsInstance(cd, cache.CacheDisk)
 
         # do some tests to make sure it looks like a dict
@@ -35,7 +38,7 @@ class CacheDiskTestCase(TestCase):
         self.assertNotIn('foo', cd)
 
     def test_ttl(self):
-        cd = cache.CacheDisk(0.1)
+        cd = cache.CacheDisk(0.1, os.path.join(integration.TMP, 'cache_test'))
         cd['foo'] = 'bar'
         self.assertIn('foo', cd)
         self.assertEqual(cd['foo'], 'bar')

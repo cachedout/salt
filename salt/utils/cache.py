@@ -80,48 +80,50 @@ class CacheDict(dict):
         return dict.__contains__(self, key)
 
 
-class CacheDisk(CacheDict):
+class CacheDisk(dict):
     '''
     Class that represents itself as a dictionary to a consumer
     but uses a disk-based backend. Serialization and de-serialization
     is done with msgpack
     '''
     def __init__(self, ttl, path, *args, **kwargs):
-        super(CacheDisk, self).__init__(ttl, *args, **kwargs)
+        super(CacheDisk, self).__init__(*args, **kwargs)
         self._path = path
-        self._dict = self._read()
-        if not 'cache_data' in self._dict:
-            self._dict['cache_data'] = {}
+        self._key_cache_time = {}
+        self._ttl = ttl
+        if not 'cache_data' in self.keys():
+            dict.__setitem__(self, 'cache_data', {})
+        self.update(self._read())
 
     def _enforce_ttl_key(self, key):
         '''
         Enforce the TTL to a specific key, delete if its past TTL
         '''
-        if key not in self._dict['cache_data']:
+        if key not in self.get('cache_data'):
             return
-        if time.time() - self._dict['cache_data'][key] > self._ttl:
-            del self._dict['cache_data'][key]
-            dict.__delitem__(self._dict, key)
+        if time.time() - dict.__getitem__(self, 'cache_data')[key] > self._ttl:
+            dict.__getitem__(self, 'cache_data').__delitem__(key)
+            dict.__delitem__(self, key)
 
     def __contains__(self, key):
         self._enforce_ttl_key(key)
-        return self._dict.__contains__(key)
+        return dict.__contains__(self, key)
 
     def __getitem__(self, key):
         '''
         Check if the key is ttld out, then do the get
         '''
         self._enforce_ttl_key(key)
-        return self._dict.__getitem__(key)
+        return dict.__getitem__(self, key)
 
     def __setitem__(self, key, val):
         '''
         Make sure to update the key cache time
         '''
         self._key_cache_time[key] = time.time()
-        self._dict.__setitem__(key, val)
+        dict.__setitem__(self, key, val)
         # Do the same as the parent but also persist
-        self._dict['cache_data'][key] = time.time()
+        dict.__getitem__(self, 'cache_data').__setitem__(key, time.time())
         self._write()
 
     def _read(self):
@@ -144,7 +146,7 @@ class CacheDisk(CacheDict):
         # TODO Add check into preflight to ensure dir exists
         # TODO Dir hashing?
         with salt.utils.fopen(self._path, 'w+') as fp_:
-            msgpack.dump(self._dict, fp_)
+            msgpack.dump(self, fp_)
 
 
 class CacheCli(object):
