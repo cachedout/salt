@@ -48,7 +48,6 @@ class CacheDict(dict):
     '''
     def __init__(self, ttl, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        log.trace('SETTING TTL in cachedict to: {0}'.format(ttl))
         self._ttl = ttl
 
         self._key_cache_time = {}
