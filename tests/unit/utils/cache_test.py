@@ -18,6 +18,33 @@ ensure_in_syspath('../../')
 # Import salt libs
 from salt.utils import cache
 
+class CacheDiskTestCase(TestCase):
+
+    def test_sanity(self):
+        '''
+        Make sure you can instantiate etc.
+        '''
+        cd = cache.CacheDisk(5)
+        self.assertIsInstance(cd, cache.CacheDisk)
+
+        # do some tests to make sure it looks like a dict
+        self.assertNotIn('foo', cd)
+        cd['foo'] = 'bar'
+        self.assertEqual(cd['foo'], 'bar')
+        del cd['foo']
+        self.assertNotIn('foo', cd)
+
+    def test_ttl(self):
+        cd = cache.CacheDisk(0.1)
+        cd['foo'] = 'bar'
+        self.assertIn('foo', cd)
+        self.assertEqual(cd['foo'], 'bar')
+        time.sleep(0.2)
+        self.assertNotIn('foo', cd)
+
+        # make sure that a get would get a regular old key error
+        self.assertRaises(KeyError, cd.__getitem__, 'foo')
+
 
 class CacheDictTestCase(TestCase):
 
