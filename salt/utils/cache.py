@@ -109,6 +109,10 @@ class CacheDisk(dict):
         self._enforce_ttl_key(key)
         return dict.__contains__(self, key)
 
+    def __delitem__(self, key):
+        dict.__getitem__(self, 'cache_data').__delitem__(key)
+        dict.__delitem__(self, key)
+
     def __getitem__(self, key):
         '''
         Check if the key is ttld out, then do the get

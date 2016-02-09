@@ -26,7 +26,6 @@ class CacheDiskTestCase(TestCase):
         '''
         Make sure you can instantiate etc.
         '''
-        import pudb; pu.db
         cd = cache.CacheDisk(5, os.path.join(integration.TMP, 'cache_test'))
         self.assertIsInstance(cd, cache.CacheDisk)
 
@@ -47,6 +46,28 @@ class CacheDiskTestCase(TestCase):
 
         # make sure that a get would get a regular old key error
         self.assertRaises(KeyError, cd.__getitem__, 'foo')
+
+    def test_membership(self):
+        cd = cache.CacheDisk(10, os.path.join(integration.TMP, 'cache_test'))
+        cd['membership_test'] = True
+        self.assertIn('membership_test', cd)
+
+    def test_type(self):
+        self.assertTrue(issubclass(cache.CacheDisk, dict))
+
+    def test_cache_data(self):
+        cd = cache.CacheDisk(10, os.path.join(integration.TMP, 'cache_test'))
+        cd['test_ttl_del'] = True
+        self.assertIn('test_ttl_del', cd['cache_data'])
+        del cd['test_ttl_del']
+        self.assertNotIn('test_ttl_del', cd['cache_data'])
+
+    def test_file_removed_underneath_cache(self):
+        cd = cache.CacheDisk(10, os.path.join(integration.TMP, 'cache_test'))
+        cd['test_remove_file'] = True
+        os.remove(os.path.join(integration.TMP, 'cache_test'))
+        self.assertIn('test_remove_file', cd)
+
 
 
 class CacheDictTestCase(TestCase):
