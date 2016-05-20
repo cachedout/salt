@@ -872,7 +872,11 @@ class DaemonMixIn(six.with_metaclass(MixInMeta, object)):
             # We've loaded and merged options into the configuration, it's safe
             # to query about the pidfile
             if self.check_pidfile():
-                os.unlink(self.config['pidfile'])
+                try:
+                    os.unlink(self.config['pidfile'])
+                except OSError:
+                    # Must print here because we've already started to shut down the logger
+                    print('[ERROR] Could not remove pidfile {0}.'.format(self.config['pidfile']))
 
     def set_pidfile(self):
         from salt.utils.process import set_pidfile
