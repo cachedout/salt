@@ -723,6 +723,7 @@ class State(object):
         try:
             self.states['{0}.{1}'.format(low['state'], low['fun'])]  # pylint: disable=W0106
         except KeyError:
+            log.error('Could not locate function {0} in state {1}'.format(low['fun'], low['state']))
             return
         minit = '{0}.mod_init'.format(low['state'])
         if low['state'] not in self.mod_init:
