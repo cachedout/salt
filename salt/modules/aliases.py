@@ -82,11 +82,11 @@ def __write_aliases_file(lines):
         if not line_comment:
             line_comment = ''
         if line_alias and line_target:
-            out.write('{0}: {1}{2}\n'.format(
+            out.write(u'{0}: {1}{2}\n'.format(
                 line_alias, line_target, line_comment
-            ))
+            ).encode(__salt_system_encoding__))
         else:
-            out.write('{0}\n'.format(line_comment))
+            out.write('{0}\n'.format(line_comment).encode(__salt_system_encoding__))
 
     out.close()
     os.rename(out.name, afn)
