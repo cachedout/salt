@@ -868,6 +868,7 @@ def run(cmd,
 
         salt '*' cmd.run cmd='sed -e s/=/:/g'
     '''
+    log.debug('CMD TYPE {0}'.format(type(cmd)))
     python_shell = _python_shell_default(python_shell,
                                          kwargs.get('__pub_jid', ''))
     ret = _run(cmd,

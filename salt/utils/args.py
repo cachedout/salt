@@ -122,7 +122,7 @@ def yamlify_arg(arg):
         if arg == 'None':
             arg = None
         else:
-            arg = yamlloader.load(arg, Loader=yamlloader.SaltYamlSafeLoader)
+            arg = yamlloader.load(arg, Loader=yamlloader.SaltYamlSafeLoader).decode()
 
         if isinstance(arg, dict):
             # dicts must be wrapped in curly braces
