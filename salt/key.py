@@ -157,6 +157,7 @@ class KeyCLI(object):
                 'fun': fun_name,
                 'arg': args,
                 'kwarg': kwargs,
+                'print_event': False,
                 }
 
         self._init_auth()
