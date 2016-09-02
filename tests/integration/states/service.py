@@ -47,17 +47,20 @@ class ServiceTest(ModuleCase,
         os_family = self.run_function('grains.get', ['os_family'])
 
         if os_family == 'Debian':
-            self.package = 'apache2'
-            self.service = 'apache2'
+            self.package = 'proftpd-basic'
+            self.service = 'proftpd'
+        if os_family == 'Arch':
+            self.package = 'vsftpd'
+            self.service = 'vsftpd'
         elif os_family == 'RedHat':
-            self.package = 'httpd'
-            self.service = 'httpd'
+            self.package = 'proftpd'
+            self.service = 'proftpd'
         elif os_family == 'Suse':
-            self.package = 'apache2'
-            self.service = 'apache2'
+            self.package = 'proftpd'
+            self.service = 'proftpd'
         elif os_family == 'FreeBSD':
-            self.package = 'apache22'
-            self.service = 'apache22'
+            self.package = 'prftpd'
+            self.service = 'proftpd'
         elif os_family == 'MacOS':
             self.package = 'homebrew/apache/httpd24'
             self.service = 'org.apache.httpd'
@@ -65,15 +68,15 @@ class ServiceTest(ModuleCase,
             self.skipTest('This platform, {0}, has not yet been configured'
                           ' to run this test'.format(os_family))
 
-    def test_aaa_setUp_package(self):
+    def test_aaa_setUp(self):
         '''
-        Install apache package
+        Install proftpd package
         '''
         installed(self.run_function, self.package)
 
-    def test_zzz_tearDown_package(self):
+    def test_zzz_tearDown(self):
         '''
-        Remove apache package
+        Remove proftpd package
         '''
         # Skip if package was not installed
         if not PKG_INSTALLED:
