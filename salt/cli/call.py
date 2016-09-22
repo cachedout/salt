@@ -51,8 +51,4 @@ class SaltCall(parsers.SaltCallOptionParser):
             caller.print_docs()
             self.exit(salt.defaults.exitcodes.EX_OK)
 
-        if self.options.grains_run:
-            caller.print_grains()
-            self.exit(salt.defaults.exitcodes.EX_OK)
-
         caller.run()

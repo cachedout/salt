@@ -116,13 +116,6 @@ class BaseCaller(object):
             if name.startswith(self.opts.get('fun', '')):
                 print_cli('{0}:\n{1}\n'.format(name, docs[name]))
 
-    def print_grains(self):
-        '''
-        Print out the grains
-        '''
-        grains = salt.loader.grains(self.opts)
-        salt.output.display_output({'local': grains}, 'grains', self.opts)
-
     def run(self):
         '''
         Execute the salt call logic
