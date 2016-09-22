@@ -208,11 +208,15 @@ def minion_mods(
     # TODO Publish documentation for module whitelisting
     if not whitelist:
         whitelist = opts.get('whitelist_modules', None)
+
+    packed = {'__context__': context, '__utils__': utils, '__proxy__': proxy}
+    if 'grains' in opts:
+        packed['__grains__'] = opts['grains']
     ret = LazyLoader(
         _module_dirs(opts, 'modules', 'module'),
         opts,
         tag='module',
-        pack={'__context__': context, '__utils__': utils, '__proxy__': proxy},
+        pack=packed,
         whitelist=whitelist,
         loaded_base_name=loaded_base_name,
         static_modules=static_modules,
