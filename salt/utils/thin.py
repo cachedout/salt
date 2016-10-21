@@ -241,8 +241,6 @@ def gen_thin(cachedir, extra_mods='', overwrite=False, so_mods='',
         if cmd.returncode == 0:
             try:
                 tops = json.loads(stdout)
-                import pprint
-                pprint.pprint(tops)
                 tops_py_version_mapping['2'] = tops
             except ValueError:
                 pass
