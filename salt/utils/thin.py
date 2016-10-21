@@ -241,6 +241,8 @@ def gen_thin(cachedir, extra_mods='', overwrite=False, so_mods='',
         if cmd.returncode == 0:
             try:
                 tops = json.loads(stdout)
+                import pprint
+                pprint.pprint(tops)
                 tops_py_version_mapping['2'] = tops
             except ValueError:
                 pass
@@ -271,6 +273,8 @@ def gen_thin(cachedir, extra_mods='', overwrite=False, so_mods='',
         for top in tops:
             base = os.path.basename(top)
             top_dirname = os.path.dirname(top)
+            if not top_dirname:
+                continue
             if os.path.isdir(top_dirname):
                 os.chdir(top_dirname)
             else:
