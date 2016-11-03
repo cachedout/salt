@@ -295,6 +295,10 @@ def bootstrap(vm_, opts):
     Windows) to install Salt. It will make the decision on its own as to which
     deploy function to call.
     '''
+    if opts['bootstrap_delay']:
+        log.info('Sleeping {0} for bootstrap delay'.format(opts['bootstrap_delay']))
+        time.sleep(opts['bootstrap_delay'])
+        log.info('Bootstrap delay complete. Proceeding with bootstrap.')
     deploy_config = salt.config.get_cloud_config_value(
         'deploy',
         vm_, opts, default=False)

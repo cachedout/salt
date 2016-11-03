@@ -98,6 +98,9 @@ class SaltCloud(parsers.SaltCloudParser):
             msg = 'There was an error generating the mapper.'
             self.handle_exception(msg, exc)
 
+        # Inject the bootstrap delay option into the config
+        self.config['bootstrap_delay'] = self.options.boostrap_delay
+
         names = self.config.get('names', None)
         if names is not None:
             filtered_rendered_map = {}
