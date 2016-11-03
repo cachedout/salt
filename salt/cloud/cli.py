@@ -99,7 +99,7 @@ class SaltCloud(parsers.SaltCloudParser):
             self.handle_exception(msg, exc)
 
         # Inject the bootstrap delay option into the config
-        self.config['bootstrap_delay'] = self.options.boostrap_delay
+        self.config['bootstrap_delay'] = self.options.bootstrap_delay
 
         names = self.config.get('names', None)
         if names is not None:
