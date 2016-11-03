@@ -1405,7 +1405,7 @@ class ExecutionOptionsMixIn(six.with_metaclass(MixInMeta, object)):
             help='Update salt-bootstrap to the latest stable bootstrap release.'
         )
         group.add_option(
-            '--boostrap-delay',
+            '--bootstrap-delay',
             default=None,
             help='Number of seconds to delay after provisioning before an attempt to bootstrap the machine is made.'
         )
