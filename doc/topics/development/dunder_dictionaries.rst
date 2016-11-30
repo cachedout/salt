@@ -117,3 +117,94 @@ each file. Here is an example from salt/modules/cp.py:
 .. note:: Because __context__ may or may not have been destroyed, always be
           sure to check for the existence of the key in __context__ and
           generate the key before using it.
+
+
+Module Metadata
+===============
+
+Modules may include dunders which describe the module, such as information
+about the module's maintainer, its maturity and what requirements are
+necessary.
+
+__requirements__
+-----------------
+
+Available in
+~~~~~~~~~~~~
+
+- Execution Modules
+- State Modules
+- Returners
+
+The ``__requirements__`` dunder specifies what software dependencies a module
+has. Dependencies are specified in a list.
+
+.. code-block:: python
+
+    __requirements__ = ['MySQL server', 'MySQL python bindings']
+
+__author__
+-----------
+
+Available in
+~~~~~~~~~~~~
+
+- Execution Modules
+- State Modules
+- Returners
+
+The ``__authors__`` dunder specifies who wrote the module. Multiple authors
+may be specified in a list.
+
+.. code-block:: python
+
+    __authors__ = ['Thomas Hatch <thatch@saltstack.com', 'Mike Place <mp@saltstack.com>']
+
+__maintainers__
+----------------
+
+Available in
+~~~~~~~~~~~~
+
+- Execution Modules
+- State Modules
+- Returners
+
+The ``__maintainers__`` dunder specifies the invididuals responsible for maintaining a module.
+
+.. code-block:: python
+
+    __maintainers__ = ['Mike Place <mp@saltstack.com>']
+
+__platforms__
+--------------
+
+Available in
+~~~~~~~~~~~~
+
+- Execution Modules
+- State Modules
+- Returners
+
+The ``__platforms__`` dunder specifies which platform the module is expected to run on.
+
+.. code-block:: python
+
+    __platforms__ = ['Windows', 'Linux']
+
+
+__company__
+------------
+
+Available in
+~~~~~~~~~~~~
+
+- Execution Modules
+- State Modules
+- Returners
+
+The ``__company__`` dunder specifies the company name for the module. All modules
+distributed by SaltStack have ``saltstack`` as the name. This allows users to
+distinguish between modules provided by Salt and custom modules.
+
+
