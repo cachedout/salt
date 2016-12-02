@@ -137,13 +137,14 @@ Available in
 - Returners
 
 The ``__requirements__`` dunder specifies what software dependencies a module
-has. Dependencies are specified in a list.
+has. Dependencies are specified in a list. Python packages should be prefixed
+with ``python-``.
 
 .. code-block:: python
 
-    __requirements__ = ['MySQL server', 'MySQL python bindings']
+    __requirements__ = ['MySQL server', 'python-jsonschema']
 
-__author__
+__authors__
 -----------
 
 Available in
@@ -193,7 +194,7 @@ The ``__platforms__`` dunder specifies which platform the module is expected to 
     __platforms__ = ['Windows', 'Linux']
 
 
-__company__
+__distributed_by__
 ------------
 
 Available in
@@ -203,8 +204,8 @@ Available in
 - State Modules
 - Returners
 
-The ``__company__`` dunder specifies the company name for the module. All modules
-distributed by SaltStack have ``saltstack`` as the name. This allows users to
-distinguish between modules provided by Salt and custom modules.
+The ``__distributed_by__`` dunder specifies the organization that distributes the module. All modules
+distributed by SaltStack have ``Saltstack Core <dev@saltstack.com>`` as the name.
+This allows users to distinguish between modules provided by Salt and custom modules.
 
 

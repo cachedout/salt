@@ -27,6 +27,51 @@ __func_alias__ = {
     'false_': 'false'
 }
 
+# A full example of module metadata options
+# Alternatively, select all platforms as follows:
+#
+#__platforms__ = ['Linux', 'Windows', 'Mac']
+
+# Wildcards will expand into all recognized platforms
+__platforms__ = ['*']
+
+# To declare that a module should only be available on
+# specific OS families, use __os_families__.
+# To restrict this, add families that correspond to
+# Salt's `os_family` grain. For example, to indicate that
+# this module should only be available on Arch Linux,
+# use: __os_families__ = ['Arch']
+
+# Wildcards will expand into all known families for
+# a given platform.
+__os_families__ = ['*']
+
+# Individuals responsible for maintaining this module.
+# Maintainers are the individuals who should be contacted
+# regarding changes to this module.
+__maintainers__ = ['SaltStack Core <dev@saltstack.com>']
+
+# Authors of a module. This is simply for historical record.
+# Those wishing to be notified on ongoing changes should use
+# __maintainers__ instead.
+__authors__ = ['Thomas Hatch <thatch@salstack.com']
+
+# Companies or groups responsible for distributing this module.
+# Use this to distinguish core modules from custom modules
+# distributed by an organization or team.
+__distributed_by__ = ['SaltStack Core <dev@saltstack.com>']
+
+# Software required by this module. For example, to indicate
+# that a user must install the `jsonschema` python package,
+# include `python-jsonschema` in this list.
+__requirements__ = []
+
+# If configuration values must be set for the module to function
+# correctly, those should be listed in __configuration__ dunder.
+# For example, if this module required the `test.enabled` option
+# to be included in a minion configuration, add `test.enabled` to
+# this list.
+__configuration__ = []
 
 @depends('non_existantmodulename')
 def missing_func():
