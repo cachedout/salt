@@ -14,6 +14,7 @@ import salt.runner
 import salt.state
 import salt.utils
 import salt.utils.schema as S
+import salt.utils.metadata
 from salt.utils.doc import strip_rst as _strip_rst
 from salt.ext.six.moves import zip
 
@@ -67,8 +68,13 @@ def doc(*args):
     if not args:
         for fun in __salt__:
             docs[fun] = __salt__[fun].__doc__
-            if hasattr(fun, '__authors__'):
-                docs[fun] = 'Authors: {0}'.format(fun.__authors__)
+            for metadata in salt.utils.metadata.MODULE_METADATA:
+                if hasattr(__salt__[fun], metadata):
+                    docs[fun] += '\n{}: {}'.format(
+                            salt.utils.metadata.MODULE_METADATA[metadata],
+                            getattr(__salt__[fun],
+                            metadata)
+                            )
         return _strip_rst(docs)
 
     for module in args:
@@ -85,12 +91,24 @@ def doc(*args):
         if _use_fnmatch:
             for fun in fnmatch.filter(__salt__, target_mod):
                 docs[fun] = __salt__[fun].__doc__
+                for metadata in salt.utils.metadata.MODULE_METADATA:
+                    if hasattr(__salt__[fun], metadata):
+                        docs[fun] += '\n{}: {}'.format(
+                                salt.utils.metadata.MODULE_METADATA[metadata],
+                                getattr(__salt__[fun],
+                                metadata)
+                                )
         else:
             for fun in __salt__:
                 if fun == module or fun.startswith(target_mod):
                     docs[fun] = __salt__[fun].__doc__
-                    if hasattr(__salt__[fun], '__authors__'):
-                        docs[fun] = 'Authors: {0}\nDistributed by: {1}\n{2}'.format(__salt__[fun].__authors__, __salt__[fun].__distributed_by__,  docs[fun])
+                    for metadata in salt.utils.metadata.MODULE_METADATA:
+                        if hasattr(__salt__[fun], metadata):
+                            docs[fun] += '\n{}: {}'.format(
+                                    salt.utils.metadata.MODULE_METADATA[metadata],
+                                    getattr(__salt__[fun],
+                                    metadata)
+                                    )
     return _strip_rst(docs)
 
 

@@ -28,6 +28,7 @@ import salt.utils.context
 import salt.utils.lazy
 import salt.utils.event
 import salt.utils.odict
+import salt.utils.metadata
 
 # Solve the Chicken and egg problem where grains need to run before any
 # of the modules are loaded and are generally available for any usage.
@@ -1479,14 +1480,7 @@ class LazyLoader(salt.utils.lazy.LazyDict):
                 mod_dict[funcname] = func
                 self._apply_outputter(func, mod)
             # Inject top-level module metadata into each function's namespace
-            for meta_dunder in (
-                    '__authors__',
-                    '__platforms__',
-                    '__os_families__',
-                    '__maintainers__',
-                    '__configuration__',
-                    '__distributed_by__',
-                    ):
+            for meta_dunder in salt.utils.metadata.MODULE_METADATA:
                 if hasattr(mod, meta_dunder):
                     setattr(func, meta_dunder, getattr(mod, meta_dunder))
 
