@@ -1478,6 +1478,17 @@ class LazyLoader(salt.utils.lazy.LazyDict):
                 setattr(mod_dict, funcname, func)
                 mod_dict[funcname] = func
                 self._apply_outputter(func, mod)
+            # Inject top-level module metadata into each function's namespace
+            for meta_dunder in (
+                    '__authors__',
+                    '__platforms__',
+                    '__os_families__',
+                    '__maintainers__',
+                    '__configuration__',
+                    '__distributed_by__',
+                    ):
+                if hasattr(mod, meta_dunder):
+                    setattr(func, meta_dunder, getattr(mod, meta_dunder))
 
         # enforce depends
         try:
