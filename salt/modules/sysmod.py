@@ -67,6 +67,8 @@ def doc(*args):
     if not args:
         for fun in __salt__:
             docs[fun] = __salt__[fun].__doc__
+            if hasattr(fun, '__authors__'):
+                docs[fun] = 'Authors: {0}'.format(fun.__authors__)
         return _strip_rst(docs)
 
     for module in args:
@@ -84,10 +86,11 @@ def doc(*args):
             for fun in fnmatch.filter(__salt__, target_mod):
                 docs[fun] = __salt__[fun].__doc__
         else:
-
             for fun in __salt__:
                 if fun == module or fun.startswith(target_mod):
                     docs[fun] = __salt__[fun].__doc__
+                    if hasattr(__salt__[fun], '__authors__'):
+                        docs[fun] = 'Authors: {0}\nDistributed by: {1}\n{2}'.format(__salt__[fun].__authors__, __salt__[fun].__distributed_by__,  docs[fun])
     return _strip_rst(docs)
 
 
