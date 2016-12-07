@@ -51,6 +51,7 @@ To override individual configuration items, append --return_kwargs '{"key:": "va
 from __future__ import absolute_import
 
 # Import python libs
+import os
 import cgi
 import logging
 
@@ -177,7 +178,7 @@ def __virtual__():
     '''
     Return virtualname
     '''
-    return 'nagios.list_plugins' in __salt__
+    return os.path.isdir('/usr/lib/nagios/plugins')
 
 
 def returner(ret):
