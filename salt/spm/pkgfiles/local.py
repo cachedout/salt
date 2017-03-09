@@ -60,6 +60,7 @@ def check_existing(package, pkg_files, formula_def, conn=None):
             continue
 
         if member.name.startswith('{0}/_'.format(package)):
+            # Assume this is a module
             if node_type in ('master', 'minion'):
                 # Module files are distributed via extmods directory
                 out_file = os.path.join(

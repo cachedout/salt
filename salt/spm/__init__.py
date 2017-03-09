@@ -976,6 +976,7 @@ class SPMClient(object):
         with salt.utils.fopen(formula_path) as fp_:
             formula_conf = yaml.safe_load(fp_)
 
+        # Check for required fields
         for field in ('name', 'version', 'release', 'summary', 'description'):
             if field not in formula_conf:
                 raise SPMPackageError('Invalid package: a {0} must be defined'.format(field))
