@@ -693,6 +693,21 @@ class Master(SMaster):
                         log.info('Enabling the reactor engine')
                         self.opts['engines']['reactor'] = {}
 
+            if self.opts.get('job_retry'):
+                if isinstance(self.opts['engines'], list):
+                    rine = False
+                    for item in self.opts['engines']:
+                        if 'job_retry' in item:
+                            rine = True
+                            break
+                    if not rine:
+                        self.opts['engines'].append({'job_retry': {}})
+                else:
+                    if 'job_retry' not in self.opts['engines']:
+                        log.info('Enabling the job_retry engine')
+                        self.opts['engines']['job_retry'] = {}
+
+
             salt.engines.start_engines(self.opts, self.process_manager)
 
             # must be after channels
@@ -2031,6 +2046,19 @@ class ClearFuncs(object):
         if 'token' not in clear_load:
             return False
         return self.loadauth.get_tok(clear_load['token'])
+
+    def enqueue_job(self, clear_load):
+        '''
+        Takes a JID and a list of minions and writes out to the minion data
+        cache for each minion a JID to be run when the minion comes back
+        online
+        '''
+        # TDOD verify clear_load
+        for minion in clear_load['minions']:
+            log.debug('clearfunc enqueuing job!')
+            self.masterapi.cache.fetch('minions/{0}'.format(minion), 'enqueued_jobs')
+            self.masterapi.cache.store('minions/{0}'.format(minion), 'enqueued_jobs', clear_load['jid'])
+
 
     def publish(self, clear_load):
         '''

@@ -1066,6 +1066,7 @@ class LocalFuncs(object):
                 rend=False)
         # Make a wheel object
         self.wheel_ = salt.wheel.Wheel(opts)
+        self.cache = salt.cache.factory(opts)
 
     def runner(self, load):
         '''

@@ -1487,6 +1487,7 @@ class LocalClient(object):
         '''
         Get the returns for the command line interface via the event system
         '''
+        print('get cli event')
         log.trace('func get_cli_event_returns()')
 
         if verbose:
@@ -1526,7 +1527,9 @@ class LocalClient(object):
                             and salt.cache.factory(self.opts).contains('minions/{0}'.format(id_), 'data') \
                             and connected_minions \
                             and id_ not in connected_minions:
-
+                        if self.opts['job_retry']:
+                            print('Calling job retry!')
+                            self.enqueue_job([id_], jid)
                         yield {
                             id_: {
                                 'out': 'no_return',
@@ -1537,6 +1540,9 @@ class LocalClient(object):
                     else:
                         # don't report syndics as unresponsive minions
                         if not os.path.exists(os.path.join(self.opts['syndic_dir'], id_)):
+                            if self.opts['job_retry']:
+                                print('Calling job retry!')
+                                self.enqueue_job([id_], jid)
                             yield {
                                 id_: {
                                     'out': 'no_return',
@@ -1653,6 +1659,29 @@ class LocalClient(object):
             payload_kwargs['to'] = timeout
 
         return payload_kwargs
+
+    def enqueue_job(self, minions, jid):
+        # TODO DRY
+        if (self.opts.get('ipc_mode', '') != 'tcp' and
+                not os.path.exists(os.path.join(self.opts['sock_dir'],
+                'publish_pull.ipc'))):
+            log.error(
+                'Unable to connect to the salt master publisher at %s',
+                self.opts['sock_dir']
+            )
+            raise SaltClientError
+        master_uri = 'tcp://' + salt.utils.zeromq.ip_bracket(self.opts['interface']) + \
+                     ':' + six.text_type(self.opts['ret_port'])
+        channel = salt.transport.Channel.factory(self.opts,
+                                                 crypt='clear',
+                                                 master_uri=master_uri)
+        payload_kwargs = {'cmd': 'enqueue_job',
+                          'minions': minions,
+                          'jid': jid
+                          }
+        print('sending enqueue request')
+        payload = channel.send(payload_kwargs)
+
 
     def pub(self,
             tgt,

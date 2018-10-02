@@ -959,6 +959,9 @@ VALID_OPTS = {
     # The number of seconds to wait when the client is requesting information about running jobs
     'gather_job_timeout': int,
 
+    # Have a minion retry a job on start if it was failed
+    'job_retry': bool,
+
     # The number of seconds to wait before timing out an authentication request
     'auth_timeout': int,
 
@@ -1711,6 +1714,7 @@ DEFAULT_MASTER_OPTS = {
     'master_tops_first': False,
     'order_masters': False,
     'job_cache': True,
+    'job_retry': False,
     'ext_job_cache': '',
     'master_job_cache': 'local_cache',
     'job_cache_store_endtime': False,
